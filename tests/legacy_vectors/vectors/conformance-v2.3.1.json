@@ -1,0 +1,499 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "2.3.5",
+  "created": "2026-02-06",
+  "description": "ASH v2.3.4 Conformance Test Vectors",
+
+  "jcs_vectors": [
+    {
+      "id": "jcs_001_simple_object",
+      "description": "Simple object with keys in reverse order",
+      "input": {"b": 2, "a": 1},
+      "expected": "{\"a\":1,\"b\":2}"
+    },
+    {
+      "id": "jcs_002_nested_object",
+      "description": "Nested objects with unsorted keys",
+      "input": {"z": {"b": 2, "a": 1}, "a": 0},
+      "expected": "{\"a\":0,\"z\":{\"a\":1,\"b\":2}}"
+    },
+    {
+      "id": "jcs_003_array_preserves_order",
+      "description": "Arrays must preserve element order",
+      "input": {"items": [3, 1, 2]},
+      "expected": "{\"items\":[3,1,2]}"
+    },
+    {
+      "id": "jcs_004_unicode_emoji",
+      "description": "Unicode characters including emoji",
+      "input": {"emoji": "😀", "text": "hello"},
+      "expected": "{\"emoji\":\"😀\",\"text\":\"hello\"}"
+    },
+    {
+      "id": "jcs_005_number_formats",
+      "description": "Various number formats",
+      "input": {"int": 42, "float": 3.14, "negative": -5, "zero": 0},
+      "expected": "{\"float\":3.14,\"int\":42,\"negative\":-5,\"zero\":0}"
+    },
+    {
+      "id": "jcs_006_escape_sequences",
+      "description": "String escape sequences",
+      "input": {"tab": "\t", "newline": "\n", "quote": "\"", "backslash": "\\"},
+      "expected": "{\"backslash\":\"\\\\\",\"newline\":\"\\n\",\"quote\":\"\\\"\",\"tab\":\"\\t\"}"
+    },
+    {
+      "id": "jcs_007_empty_object",
+      "description": "Empty object",
+      "input": {},
+      "expected": "{}"
+    },
+    {
+      "id": "jcs_008_null_and_booleans",
+      "description": "Null and boolean values",
+      "input": {"null_val": null, "true_val": true, "false_val": false},
+      "expected": "{\"false_val\":false,\"null_val\":null,\"true_val\":true}"
+    },
+    {
+      "id": "jcs_009_empty_string",
+      "description": "Empty string value",
+      "input": {"empty": "", "space": " "},
+      "expected": "{\"empty\":\"\",\"space\":\" \"}"
+    },
+    {
+      "id": "jcs_010_deep_nesting",
+      "description": "Deeply nested structure",
+      "input": {"a": {"b": {"c": {"d": 1}}}},
+      "expected": "{\"a\":{\"b\":{\"c\":{\"d\":1}}}}"
+    },
+    {
+      "id": "jcs_011_mixed_array",
+      "description": "Array with mixed types",
+      "input": {"arr": [1, "two", true, null, {"x": 1}]},
+      "expected": "{\"arr\":[1,\"two\",true,null,{\"x\":1}]}"
+    },
+    {
+      "id": "jcs_012_unicode_sorting",
+      "description": "Keys with unicode must sort by UTF-16 code units",
+      "input": {"ä": 1, "a": 2, "z": 3},
+      "expected": "{\"a\":2,\"z\":3,\"ä\":1}"
+    }
+  ],
+
+  "jcs_error_vectors": [
+    {
+      "id": "jcs_err_001_duplicate_keys",
+      "description": "Duplicate keys MUST be rejected",
+      "input_raw": "{\"a\":1,\"a\":2}",
+      "expected_error": "DUPLICATE_KEY"
+    }
+  ],
+
+  "query_vectors": [
+    {
+      "id": "query_001_simple_sort",
+      "description": "Simple key sorting",
+      "input": "b=2&a=1",
+      "expected": "a=1&b=2"
+    },
+    {
+      "id": "query_002_duplicate_keys_sorted",
+      "description": "Duplicate keys with values sorted",
+      "input": "z=3&a=1&z=2&z=1",
+      "expected": "a=1&z=1&z=2&z=3"
+    },
+    {
+      "id": "query_003_percent_encoding_uppercase",
+      "description": "Percent encoding must be uppercase",
+      "input": "path=%2ffoo%2fbar",
+      "expected": "path=%2Ffoo%2Fbar"
+    },
+    {
+      "id": "query_004_space_encoding",
+      "description": "Spaces must be percent-encoded",
+      "input": "name=hello world",
+      "expected": "name=hello%20world"
+    },
+    {
+      "id": "query_005_plus_is_literal",
+      "description": "Plus signs are literal (not spaces) per ASH protocol, encoded to %2B",
+      "input": "q=a+b",
+      "expected": "q=a%2Bb"
+    },
+    {
+      "id": "query_006_empty_value",
+      "description": "Empty value preserved",
+      "input": "a=&b=1",
+      "expected": "a=&b=1"
+    },
+    {
+      "id": "query_007_no_value",
+      "description": "Key without value",
+      "input": "flag&name=test",
+      "expected": "flag=&name=test"
+    },
+    {
+      "id": "query_008_empty_string",
+      "description": "Empty query string",
+      "input": "",
+      "expected": ""
+    },
+    {
+      "id": "query_009_case_sensitive_keys",
+      "description": "Keys are case-sensitive",
+      "input": "A=1&a=2&B=3",
+      "expected": "A=1&B=3&a=2"
+    },
+    {
+      "id": "query_010_special_chars",
+      "description": "Special characters encoding",
+      "input": "data=foo&bar&equals=a=b",
+      "expected": "data=foo%26bar&equals=a%3Db"
+    },
+    {
+      "id": "query_011_unicode_values",
+      "description": "Unicode in values",
+      "input": "name=日本語",
+      "expected": "name=%E6%97%A5%E6%9C%AC%E8%AA%9E"
+    }
+  ],
+
+  "binding_vectors": [
+    {
+      "id": "bind_001_post_no_query",
+      "description": "POST request without query string",
+      "method": "POST",
+      "path": "/api/users",
+      "query": "",
+      "expected": "POST|/api/users|"
+    },
+    {
+      "id": "bind_002_get_with_query",
+      "description": "GET request with query parameters",
+      "method": "GET",
+      "path": "/api/users",
+      "query": "limit=10&offset=0",
+      "expected": "GET|/api/users|limit=10&offset=0"
+    },
+    {
+      "id": "bind_003_delete_with_id",
+      "description": "DELETE request with path parameter",
+      "method": "DELETE",
+      "path": "/api/users/123",
+      "query": "",
+      "expected": "DELETE|/api/users/123|"
+    },
+    {
+      "id": "bind_004_query_must_be_canonical",
+      "description": "Query string must be canonicalized",
+      "method": "GET",
+      "path": "/search",
+      "query": "z=1&a=2",
+      "expected": "GET|/search|a=2&z=1"
+    },
+    {
+      "id": "bind_005_put_with_query",
+      "description": "PUT request with query",
+      "method": "PUT",
+      "path": "/api/items/456",
+      "query": "force=true",
+      "expected": "PUT|/api/items/456|force=true"
+    },
+    {
+      "id": "bind_006_patch",
+      "description": "PATCH request",
+      "method": "PATCH",
+      "path": "/api/config",
+      "query": "",
+      "expected": "PATCH|/api/config|"
+    },
+    {
+      "id": "bind_007_method_uppercase",
+      "description": "Method must be uppercase",
+      "method": "post",
+      "path": "/api/data",
+      "query": "",
+      "expected": "POST|/api/data|",
+      "note": "Implementation should uppercase the method"
+    }
+  ],
+
+  "proof_vectors": [
+    {
+      "id": "proof_001_basic",
+      "description": "Basic proof generation (no scope, no chain)",
+      "binding": "POST|/api/login|",
+      "contextId": "ctx_test_001",
+      "timestamp": "1737331200",
+      "bodyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "clientSecret": "test_secret_001",
+      "scope": [],
+      "previousProof": null,
+      "note": "Expected proof computed from: HMAC-SHA256(clientSecret, timestamp|binding|bodyHash)"
+    },
+    {
+      "id": "proof_002_scoped",
+      "description": "Scoped proof (ENH-001) - protect only specific fields",
+      "binding": "POST|/api/transfer|",
+      "contextId": "ctx_test_002",
+      "timestamp": "1737331200",
+      "payload": {"amount": 100, "recipient": "user123", "notes": "ignore this"},
+      "scope": ["amount", "recipient"],
+      "scopeHash_formula": "SHA256('amount,recipient')",
+      "bodyHash_formula": "SHA256(JCS({amount: 100, recipient: 'user123'}))",
+      "clientSecret": "test_secret_002",
+      "previousProof": null,
+      "note": "Only 'amount' and 'recipient' are protected, 'notes' is ignored"
+    },
+    {
+      "id": "proof_003_chained",
+      "description": "Chained proof (ENH-002) - linked to previous request",
+      "binding": "POST|/api/checkout|",
+      "contextId": "ctx_test_003",
+      "timestamp": "1737331200",
+      "bodyHash": "abc123def456",
+      "clientSecret": "test_secret_003",
+      "scope": [],
+      "previousProof": "previous_proof_base64_here",
+      "chainHash_formula": "SHA256(previousProof)",
+      "note": "Proof cryptographically linked to previous step"
+    },
+    {
+      "id": "proof_004_unified",
+      "description": "Unified proof (scoped + chained)",
+      "binding": "POST|/api/payment|",
+      "contextId": "ctx_test_004",
+      "timestamp": "1737331200",
+      "payload": {"amount": 500, "currency": "USD"},
+      "scope": ["amount", "currency"],
+      "previousProof": "checkout_proof_base64",
+      "clientSecret": "test_secret_004",
+      "formula": "HMAC-SHA256(clientSecret, timestamp|binding|bodyHash|scopeHash|chainHash)",
+      "note": "Full unified proof with both scoping and chaining"
+    }
+  ],
+
+  "scope_vectors": [
+    {
+      "id": "scope_001_extract_fields",
+      "description": "Extract scoped fields from payload",
+      "payload": {"amount": 100, "recipient": "user123", "notes": "test", "metadata": {"ip": "1.2.3.4"}},
+      "scope": ["amount", "recipient"],
+      "expected_extracted": {"amount": 100, "recipient": "user123"}
+    },
+    {
+      "id": "scope_002_dot_notation",
+      "description": "Scope with dot notation for nested fields",
+      "payload": {"user": {"name": "John", "address": {"city": "NYC", "zip": "10001"}}, "action": "update"},
+      "scope": ["user.name", "user.address.city"],
+      "expected_extracted": {"user": {"name": "John", "address": {"city": "NYC"}}}
+    },
+    {
+      "id": "scope_003_empty_scope",
+      "description": "Empty scope means full payload protection",
+      "payload": {"a": 1, "b": 2},
+      "scope": [],
+      "expected_extracted": {"a": 1, "b": 2},
+      "scopeHash": ""
+    },
+    {
+      "id": "scope_004_scope_hash",
+      "description": "Scope hash calculation",
+      "scope": ["amount", "recipient"],
+      "expected_scopeHash_input": "amount,recipient",
+      "note": "scopeHash = SHA256(scope.join(','))"
+    }
+  ],
+
+  "chain_vectors": [
+    {
+      "id": "chain_001_first_request",
+      "description": "First request in chain (no previous proof)",
+      "step": 1,
+      "binding": "POST|/api/cart|",
+      "previousProof": null,
+      "chainHash": "",
+      "note": "First step has empty chainHash"
+    },
+    {
+      "id": "chain_002_second_request",
+      "description": "Second request linked to first",
+      "step": 2,
+      "binding": "POST|/api/checkout|",
+      "previousProof": "cart_proof_abc123",
+      "chainHash_formula": "SHA256('cart_proof_abc123')",
+      "note": "chainHash proves this follows step 1"
+    },
+    {
+      "id": "chain_003_third_request",
+      "description": "Third request linked to second",
+      "step": 3,
+      "binding": "POST|/api/payment|",
+      "previousProof": "checkout_proof_def456",
+      "chainHash_formula": "SHA256('checkout_proof_def456')",
+      "note": "Complete chain: cart -> checkout -> payment"
+    }
+  ],
+
+  "error_code_vectors": [
+    {
+      "id": "err_001_context_not_found",
+      "scenario": "Context ID does not exist",
+      "expected_code": "ASH_CTX_NOT_FOUND",
+      "http_status": 450
+    },
+    {
+      "id": "err_002_context_expired",
+      "scenario": "Context TTL has passed",
+      "expected_code": "ASH_CTX_EXPIRED",
+      "http_status": 451
+    },
+    {
+      "id": "err_003_replay_detected",
+      "scenario": "Context already consumed",
+      "expected_code": "ASH_CTX_ALREADY_USED",
+      "http_status": 452
+    },
+    {
+      "id": "err_004_verification_failed",
+      "scenario": "Proof does not match expected",
+      "expected_code": "ASH_PROOF_INVALID",
+      "http_status": 460
+    },
+    {
+      "id": "err_005_binding_mismatch",
+      "scenario": "Request binding differs from context",
+      "expected_code": "ASH_BINDING_MISMATCH",
+      "http_status": 461
+    },
+    {
+      "id": "err_006_scope_mismatch",
+      "scenario": "Scope hash doesn't match (ENH-001)",
+      "expected_code": "ASH_SCOPE_MISMATCH",
+      "http_status": 473
+    },
+    {
+      "id": "err_007_chain_broken",
+      "scenario": "Previous proof invalid or missing (ENH-002)",
+      "expected_code": "ASH_CHAIN_BROKEN",
+      "http_status": 474
+    },
+    {
+      "id": "err_008_timestamp_invalid",
+      "scenario": "Timestamp is missing or outside tolerance window",
+      "expected_code": "ASH_TIMESTAMP_INVALID",
+      "http_status": 482
+    }
+  ],
+
+  "reject_vectors": [
+    {
+      "id": "reject_001_duplicate_keys",
+      "description": "JSON with duplicate keys MUST be rejected",
+      "input_raw": "{\"a\":1,\"a\":2}",
+      "expected_error": "ASH_CANON_DUPLICATE_KEYS"
+    },
+    {
+      "id": "reject_002_invalid_json",
+      "description": "Invalid JSON MUST be rejected",
+      "input_raw": "{a:1}",
+      "expected_error": "ASH_CANON_INVALID_JSON"
+    },
+    {
+      "id": "reject_003_nan_infinity",
+      "description": "NaN/Infinity MUST be rejected",
+      "input": {"value": "NaN"},
+      "expected_error": "ASH_CANON_INVALID_NUMBER",
+      "note": "Languages that allow NaN/Infinity must reject"
+    },
+    {
+      "id": "reject_004_money_float",
+      "description": "Float for money fields should be rejected",
+      "input": {"amount": 10.99, "currency": "USD"},
+      "expected_error": "ASH_PROFILE_MONEY_FLOAT",
+      "note": "Use minor units (1099 cents) or strings"
+    },
+    {
+      "id": "reject_005_invalid_percent",
+      "description": "Invalid percent encoding in query",
+      "input": "name=%ZZ",
+      "expected_error": "ASH_QUERY_INVALID_ENCODING"
+    }
+  ],
+
+  "hash_vectors": [
+    {
+      "id": "hash_001_empty_object",
+      "description": "Hash of empty object",
+      "input": {},
+      "jcs_output": "{}",
+      "sha256_hex": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "id": "hash_002_simple_object",
+      "description": "Hash of simple object",
+      "input": {"a": 1, "b": 2},
+      "jcs_output": "{\"a\":1,\"b\":2}",
+      "sha256_hex": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
+    },
+    {
+      "id": "hash_003_nested_object",
+      "description": "Hash of nested object",
+      "input": {"user": {"name": "John", "age": 30}},
+      "jcs_output": "{\"user\":{\"age\":30,\"name\":\"John\"}}",
+      "sha256_hex": "5c735904a78264180b4d02a9dac036896b83cf5659d5310dd65d1117529fc993"
+    }
+  ],
+
+  "mode_vectors": [
+    {
+      "id": "mode_001_strict",
+      "description": "Strict mode requires all components",
+      "mode": "strict",
+      "required": ["binding", "bodyHash", "timestamp", "contextId"],
+      "timestamp_window_seconds": 30
+    },
+    {
+      "id": "mode_002_balanced",
+      "description": "Balanced mode for standard protection",
+      "mode": "balanced",
+      "required": ["binding", "bodyHash", "timestamp", "contextId"],
+      "timestamp_window_seconds": 60
+    },
+    {
+      "id": "mode_003_minimal",
+      "description": "Minimal mode for low-risk endpoints",
+      "mode": "minimal",
+      "required": ["bodyHash"],
+      "timestamp_window_seconds": 120
+    }
+  ],
+
+  "metadata": {
+    "total_jcs_vectors": 12,
+    "total_jcs_error_vectors": 1,
+    "total_query_vectors": 11,
+    "total_binding_vectors": 7,
+    "total_proof_vectors": 4,
+    "total_scope_vectors": 4,
+    "total_chain_vectors": 3,
+    "total_error_vectors": 8,
+    "total_reject_vectors": 5,
+    "total_hash_vectors": 3,
+    "total_mode_vectors": 3,
+    "grand_total": 61,
+    "enhancements_covered": [
+      "ENH-001 Context Scoping",
+      "ENH-002 Unified Proof",
+      "ENH-002 Request Chaining",
+      "RFC 8785 JCS Canonicalization",
+      "Query Canonicalization (9 MUST rules)",
+      "Hash Encoding (lowercase hex)",
+      "ASH Profile Constraints",
+      "Mode Policy (server-enforced)",
+      "23 Error Codes",
+      "DoS-Optimized Verification Order",
+      "Constant-Time Comparisons",
+      "Atomic Consume Pattern"
+    ]
+  }
+}

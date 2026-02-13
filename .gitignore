@@ -1,0 +1,135 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# WASM
+packages/ash-wasm-sdk/pkg/
+
+# Node.js
+node_modules/
+dist/
+*.log
+.npm
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
+
+# PHP
+**/vendor/
+composer.lock
+composer.phar
+*.phpunit.result.cache
+.phpunit.cache/
+phpunit.xml.bak
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build artifacts (common)
+bin/
+obj/
+*.pdb
+*.user
+*.userosscache
+*.suo
+*.cache
+.vs/
+*.nupkg
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Build artifacts
+*.wasm
+*.wasm.gz
+
+# ASH Project - Internal Tests
+tests/security/
+tests/security_assurance/
+tests/security_assurance_go/
+tests/security_assurance_node/
+tests/comprehensive/
+tests/ASH-PROTOCOL-TESTS.md
+tests/MIDDLEWARE-TESTS.md
+tests/README.md
+tests/SDK-SPECIFIC-TESTS.md
+tests/SECURITY_ASSURANCE_PACK.md
+tests/unified_proof_test_vectors.json
+
+# ASH Project - Internal/Private
+enhancements/
+guidance/
+analysis/
+meetings/
+sessions/
+reports/
+checklist/
+tutorials/
+docs/NEW_README*.md
+BUSINESS_PLAN.md
+outcome.md
+PUBLISHING.md
+PUBLISHING_PREPARATION_GUIDE.md
+ASH_CLOUD_GUIDE.md
+ASH_LIBRARY_FULL_REVIEW_REPORT.md
+CROSS_SDK_CONSISTENCY_REPORT.md
+FINAL_VERIFICATION_REPORT.md
+FUNCTION_RENAMES.md
+MIDDLEWARE_CONSISTENCY_REPORT.md
+RELEASE_CHECKLIST.md
+packages/ashcore/BUG_REPORT.md
+
+# Temp files
+tmpclaude-*
+**/tmpclaude-*
+
+# Lock files
+package-lock.json

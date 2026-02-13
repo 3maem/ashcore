@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "description": "Conformance vector file schema for ASH v1.0.0. This file defines the contract that vectors.json must satisfy.",
+  "required_metadata": [
+    "ash_version",
+    "schema_version",
+    "reference_time",
+    "canonical_encoding",
+    "determinism_rule",
+    "generated_from",
+    "generated_at",
+    "generator_version",
+    "features",
+    "domains",
+    "hash_algorithms",
+    "error_registry",
+    "limits",
+    "byte_rules"
+  ],
+  "required_policies": {
+    "unicode_normalization": "NFC",
+    "key_sorting": "jcs_rfc8785",
+    "newline_policy": "preserve",
+    "plus_policy": "literal_plus_never_space",
+    "path_percent_decode": "decode_all",
+    "path_normalization": "rfc3986_remove_dot_segments",
+    "json_duplicate_keys": "last_wins",
+    "json_input_mode": "text_only",
+    "invalid_utf8": "reject",
+    "hex_case": "lowercase_output_uppercase_percent",
+    "query_duplicate_policy": "sort_by_key_then_value",
+    "query_flag_policy": "flag_equals_empty",
+    "query_normalization": "decode_then_reencode_once",
+    "canonical_encoding": "UTF-8"
+  },
+  "required_categories": [
+    "json_canonicalization",
+    "query_canonicalization",
+    "urlencoded_canonicalization",
+    "binding_normalization",
+    "body_hashing",
+    "client_secret_derivation",
+    "proof_generation",
+    "scoped_field_extraction",
+    "unified_proof",
+    "timing_safe_comparison",
+    "error_behavior",
+    "timestamp_validation"
+  ],
+  "vector_structure": {
+    "required_fields": ["id", "description"],
+    "success_vector": {
+      "has_one_of": ["expected", "input_json_text"],
+      "note": "Success vectors have 'expected' (string, object, or boolean)"
+    },
+    "error_vector": {
+      "required": ["expected_error"],
+      "expected_error_fields": ["code", "http_status"],
+      "note": "Error vectors have 'expected_error' with normative code and http_status"
+    },
+    "optional_fields": ["debug"]
+  },
+  "limits": {
+    "max_json_depth": 64,
+    "max_payload_bytes": 10485760,
+    "max_scope_fields": 100,
+    "max_scope_field_len": 64,
+    "max_nonce_hex_len": 512,
+    "max_binding_len": 8192,
+    "max_context_id_len": 256,
+    "max_query_pairs": 256
+  },
+  "hash_algorithms": {
+    "default": "sha256",
+    "hmac_default": "hmac-sha256"
+  },
+  "immutability_rule": "Once published, vectors for a given ash_version are immutable. Regeneration requires ash_version increment.",
+  "id_stability_rule": "Vector IDs are stable and must not be reused across versions."
+}

@@ -1,0 +1,40 @@
+name: Conformance Guard
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'tests/conformance/**'
+
+jobs:
+  guard:
+    name: Verify conformance files are locked
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for unauthorized changes
+        if: env.ALLOW_CONFORMANCE_UPDATE != '1'
+        run: |
+          GUARDED_FILES=(
+            "tests/conformance/vectors.json"
+            "tests/conformance/README.md"
+            "tests/conformance/schema.json"
+            "tests/conformance/LOCKED.md"
+          )
+          CHANGED=0
+          for f in "${GUARDED_FILES[@]}"; do
+            if git diff origin/${{ github.base_ref }} -- "$f" | grep -q '^diff'; then
+              echo "::error::LOCKED conformance file modified: $f"
+              CHANGED=1
+            fi
+          done
+          if [ $CHANGED -ne 0 ]; then
+            echo ""
+            echo "Conformance files are immutable for the current ash_version."
+            echo "To update, use the Release/Regenerate workflow or set env ALLOW_CONFORMANCE_UPDATE=1."
+            exit 1
+          fi
+          echo "Conformance guard passed — no locked files modified."

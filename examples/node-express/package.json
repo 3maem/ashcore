@@ -1,0 +1,17 @@
+{
+  "name": "ash-node-express-example",
+  "version": "1.0.0",
+  "description": "ASH Protocol example with Node.js Express",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "client": "node client.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
