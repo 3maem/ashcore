@@ -1,7 +1,0 @@
-[package]
-name = "ash-wasm-sdk"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-
-[dependencies]

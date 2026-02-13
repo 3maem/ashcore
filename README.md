@@ -69,24 +69,13 @@ It is an additional security layer.
 
 ## Examples
 
-### SDK Examples
-
 | Framework | Language | Directory |
 |-----------|----------|-----------|
 | Express | Node.js | [`examples/express/`](examples/express/) |
+| Node Express | Node.js | [`examples/node-express/`](examples/node-express/) |
 | Actix | Rust | [`examples/actix/`](examples/actix/) |
 
 Node.js SDK also includes built-in examples at [`packages/ash-node-sdk/examples/`](packages/ash-node-sdk/examples/).
-
-### Standalone Protocol Demos
-
-Self-contained examples that implement ASH inline (no SDK dependency):
-
-| Framework | Language | Directory |
-|-----------|----------|-----------|
-| Node Express | Node.js | [`examples/node-express/`](examples/node-express/) |
-| Go HTTP | Go | [`examples/go-http/`](examples/go-http/) |
-| Flask | Python | [`examples/python-flask/`](examples/python-flask/) |
 
 ---
 
