@@ -3,10 +3,10 @@
 This document provides a technical overview of ASH's security design, assumptions, and best practices.
 
 If you are looking to report a vulnerability, please see:
-👉 [SECURITY.md](../../SECURITY.md)
+[SECURITY.md](../../SECURITY.md)
 
 For system architecture, see:
-👉 [architecture.md](architecture.md)
+[architecture.md](architecture.md)
 
 This guide focuses on how ASH works internally and how to use it securely.
 
@@ -40,10 +40,7 @@ It serves as an additional protection layer.
 
 | Version | Supported |
 |---------|-----------|
-| 2.3.x   | ✅ Yes    |
-| 2.2.x   | ❌ No     |
-| 2.1.x   | ❌ No     |
-| < 2.1   | ❌ No     |
+| 1.0.x   | Yes       |
 
 Security patches are only provided for actively supported versions.
 Please upgrade regularly.
@@ -67,17 +64,17 @@ If these assumptions do not hold, additional controls are required.
 
 ### ASH provides
 
-- ✅ Request integrity validation
-- ✅ Single-use enforcement
-- ✅ Replay protection
-- ✅ Binding validation
+- Request integrity validation
+- Single-use enforcement
+- Replay protection
+- Binding validation
 
 ### ASH does NOT provide
 
-- ❌ Authentication
-- ❌ Authorization
-- ❌ Malware protection
-- ❌ Intrusion detection
+- Authentication
+- Authorization
+- Malware protection
+- Intrusion detection
 
 ASH validates whether a request was altered or replayed, not whether it is logically safe.
 
@@ -116,7 +113,6 @@ Additional protections include:
 
 - Constant-time comparisons
 - Secure memory clearing
-- SQL identifier validation
 - Context isolation
 - Expiration enforcement
 
@@ -134,22 +130,10 @@ These reduce the feasibility of side-channel and replay attacks.
 npm audit && npm update
 ```
 
-#### Python
-
-```bash
-pip install --upgrade ash-python-sdk
-```
-
 #### Rust
 
 ```bash
 cargo update && cargo audit
-```
-
-#### Go
-
-```bash
-go get -u && govulncheck ./...
 ```
 
 ---
@@ -168,8 +152,12 @@ Shorter TTLs reduce replay risk.
 
 #### Production
 
-- Redis with TLS
+- Redis with TLS (use `AshRedisStore`)
 - SQL with encryption at rest
+
+#### Development
+
+- In-memory store (`AshMemoryStore`) for local development only
 
 #### Avoid
 
@@ -182,39 +170,34 @@ Shorter TTLs reduce replay risk.
 
 Always verify request binding on the server:
 
-```python
-expected_binding = normalize_binding("POST", "/api/transfer", "")
-if context.binding != expected_binding:
-    raise EndpointMismatchError()
+```typescript
+import { ashNormalizeBinding } from '@3maem/ash-node-sdk';
+
+const expectedBinding = ashNormalizeBinding('POST', '/api/transfer', '');
+if (context.binding !== expectedBinding) {
+    throw new Error('Endpoint mismatch');
+}
 ```
 
 This prevents endpoint substitution attacks.
 
 ---
 
-### 5. Secure Memory Usage (High Security Environments)
+### 5. Secure Memory Usage
 
-#### Python
-
-```python
-from ash.core import SecureString
-
-with SecureString(client_secret) as secret:
-    proof = ash_build_proof_hmac(secret.get(), timestamp, binding, body_hash)
-# Memory is automatically cleared
-```
-
-#### Node.js
+The Node.js SDK provides `destroy()` on build results to zero sensitive data:
 
 ```typescript
-import { SecureString } from '@3maem/ash-node-sdk';
+import { ashBuildRequest } from '@3maem/ash-node-sdk';
 
-const secret = new SecureString(clientSecret);
-try {
-    const proof = ashBuildProofHmac(secret.get(), timestamp, binding, bodyHash);
-} finally {
-    secret.clear();
-}
+const result = ashBuildRequest({
+    nonce, contextId, method: 'POST', path: '/api/transfer',
+    body: JSON.stringify({ amount: 100 }),
+});
+
+// Use result.proof, result.bodyHash, etc.
+
+result.destroy(); // Zero sensitive data when done
 ```
 
 ---
@@ -223,11 +206,12 @@ try {
 
 ASH undergoes periodic internal security reviews.
 
-Audit reports may be published under:
+The Node.js SDK includes comprehensive security test suites:
 
-```
-reports/security-audit/
-```
+- Penetration tests (PT)
+- Security audit tests (SA)
+- Fuzz tests (FUZZ)
+- Property-based tests
 
 ---
 
