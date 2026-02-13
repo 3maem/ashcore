@@ -17,7 +17,7 @@ If you discover a security vulnerability or potential exploit:
 
 Please report it privately to:
 
-**security@ash-sdk.com**
+**security@ashcore.com**
 
 Include:
 
