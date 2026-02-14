@@ -1,6 +1,6 @@
-# ASH SDK Troubleshooting Guide
+# ashcore Troubleshooting Guide
 
-This guide covers common issues and their solutions when integrating ASH into your applications.
+This guide covers common issues and their solutions when integrating ashcore into your applications.
 
 ---
 
@@ -10,7 +10,7 @@ This guide covers common issues and their solutions when integrating ASH into yo
 2. [Context Errors](#context-errors)
 3. [Canonicalization Issues](#canonicalization-issues)
 4. [Clock Drift and Timing](#clock-drift-and-timing)
-5. [Cross-SDK Compatibility](#cross-sdk-compatibility)
+5. [Rust / Node.js Interoperability](#rust--nodejs-interoperability)
 6. [Performance Issues](#performance-issues)
 7. [Debugging Tips](#debugging-tips)
 8. [HTTP Status Code Reference](#http-status-code-reference)
@@ -28,7 +28,7 @@ This guide covers common issues and their solutions when integrating ASH into yo
 1. **Payload modified after canonicalization**
    ```javascript
    // WRONG: Modifying after canonicalization
-   const canonical = ashCanonicalizeJson(payload);
+   const canonical = ashCanonicalizeJson(JSON.stringify(payload));
    payload.timestamp = Date.now(); // Modifies original!
    const bodyHash = ashHashBody(canonical);
 
@@ -36,7 +36,6 @@ This guide covers common issues and their solutions when integrating ASH into yo
    payload.timestamp = Date.now();
    const canonical = ashCanonicalizeJson(JSON.stringify(payload));
    const bodyHash = ashHashBody(canonical);
-   const proof = ashBuildProofHmac(clientSecret, bodyHash, timestamp, binding);
    ```
 
 2. **JSON serialization differences**
@@ -56,20 +55,26 @@ This guide covers common issues and their solutions when integrating ASH into yo
    // Client: "POST /api/users"
    // Server expects: "POST|/api/users|"
 
-   // CORRECT: Use consistent binding format
+   // CORRECT: Use ashNormalizeBinding on both sides
    const binding = ashNormalizeBinding('POST', '/api/users', '');
+   // Returns: "POST|/api/users|"
    ```
 
-4. **Using wrong client secret**
-   - Verify `contextId` matches
-   - Verify `nonce` (if using strict mode) is correct
-   - Check for copy/paste errors
+4. **Wrong parameter order in ashBuildProof**
+   ```javascript
+   // WRONG: bodyHash before timestamp
+   const proof = ashBuildProof(clientSecret, bodyHash, timestamp, binding);
+
+   // CORRECT: timestamp, binding, bodyHash
+   const proof = ashBuildProof(clientSecret, timestamp, binding, bodyHash);
+   ```
 
 **Solution Checklist:**
-- [ ] Client and server use same binding format
+- [ ] Client and server use same binding format (`METHOD|PATH|QUERY`)
 - [ ] Payload is canonicalized before proof generation
 - [ ] Same canonicalized payload is sent in request body
 - [ ] contextId matches between context issuance and verification
+- [ ] Parameter order: `ashBuildProof(clientSecret, timestamp, binding, bodyHash)`
 
 ---
 
@@ -81,7 +86,6 @@ This guide covers common issues and their solutions when integrating ASH into yo
 
 1. Check canonicalization output:
    ```javascript
-   // Both SDKs should produce identical output
    // Node.js
    const canonical = ashCanonicalizeJson('{"z":1,"a":2}');
    console.log(canonical);  // {"a":2,"z":1}
@@ -95,7 +99,6 @@ This guide covers common issues and their solutions when integrating ASH into yo
 
 2. Compare intermediate values:
    ```javascript
-   // Debug: Print all inputs
    console.log('clientSecret:', clientSecret);
    console.log('timestamp:', timestamp);
    console.log('binding:', binding);
@@ -103,13 +106,13 @@ This guide covers common issues and their solutions when integrating ASH into yo
    console.log('proof:', proof);
    ```
 
-**Common Cross-SDK Issues:**
+**Common Interop Issues:**
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
 | Different body hash | Encoding differences | Ensure UTF-8 encoding |
-| Different proof | Algorithm mismatch | Verify HMAC-SHA256 implementation |
-| Binding format | Version mismatch | Use binding format `METHOD\|PATH\|QUERY` |
+| Different proof | Parameter order mismatch | Use `(clientSecret, timestamp, binding, bodyHash)` |
+| Binding format | Version mismatch | Use `METHOD\|PATH\|QUERY` format |
 
 ---
 
@@ -124,10 +127,10 @@ This guide covers common issues and their solutions when integrating ASH into yo
 1. **Store not shared across instances**
    ```javascript
    // WRONG: Memory store in clustered environment
-   const store = new AshMemoryStore(); // Not shared!
+   const store = new AshMemoryStore(); // Not shared across processes!
 
    // CORRECT: Use Redis for production
-   const store = new AshRedisStore(redisClient);
+   const store = new AshRedisStore({ client: redisClient });
    ```
 
 2. **Context consumed by previous request**
@@ -139,16 +142,6 @@ This guide covers common issues and their solutions when integrating ASH into yo
    - Copy from server response exactly
    - Check for extra whitespace
 
-**Debugging:**
-```javascript
-// Server: Log context creation
-const ctx = await store.create({ binding, ttlMs: 30000 });
-console.log('Created context:', ctx.id);
-
-// Client: Log context usage
-console.log('Using context:', contextId);
-```
-
 ---
 
 ### ASH_CTX_EXPIRED (HTTP 451)
@@ -157,25 +150,11 @@ console.log('Using context:', contextId);
 
 **Causes:**
 
-1. **TTL too short**
-   ```javascript
-   // WRONG: 5 second TTL with slow network
-   const ctx = await store.create({ ttlMs: 5000 });
-
-   // CORRECT: Use appropriate TTL
-   const ctx = await store.create({ ttlMs: 30000 }); // 30 seconds
-   ```
+1. **TTL too short** -- Default TTL is 300 seconds (5 minutes). Reduce time between context issuance and request.
 
 2. **Clock drift** (see [Clock Drift section](#clock-drift-and-timing))
 
-3. **Slow client processing**
-   - Reduce time between context issuance and request
-   - Pre-fetch contexts if needed
-
-**Best Practices:**
-- Use 30 second TTL for normal operations
-- Use shorter TTL (10s) for high-value transactions
-- Never exceed 5 minutes
+3. **Slow client processing** -- Pre-compute payload canonicalization before requesting a context.
 
 ---
 
@@ -190,10 +169,26 @@ console.log('Using context:', contextId);
 1. **Request new context for each operation**
    ```javascript
    async function makeProtectedRequest(data) {
-     // Always get fresh context
+     // Always get fresh context from your server
      const ctx = await fetch('/ash/context').then(r => r.json());
-     const proof = buildProof(ctx, data);
-     return fetch('/api/endpoint', { ... });
+
+     // Derive secret and build proof
+     const clientSecret = ashDeriveClientSecret(ctx.nonce, ctx.id, binding);
+     const bodyHash = ashHashBody(ashCanonicalizeJson(JSON.stringify(data)));
+     const timestamp = String(Math.floor(Date.now() / 1000));
+     const proof = ashBuildProof(clientSecret, timestamp, binding, bodyHash);
+
+     return fetch('/api/endpoint', {
+       method: 'POST',
+       headers: {
+         'x-ash-ts': timestamp,
+         'x-ash-nonce': ctx.nonce,
+         'x-ash-body-hash': bodyHash,
+         'x-ash-proof': proof,
+         'x-ash-context-id': ctx.id,
+       },
+       body: ashCanonicalizeJson(JSON.stringify(data)),
+     });
    }
    ```
 
@@ -225,8 +220,7 @@ console.log('Using context:', contextId);
 1. **Invalid JSON**
    ```javascript
    // WRONG
-   ashCanonicalizeJson('{invalid}');  // Error!
-   ashCanonicalizeJson('hello');       // Error! (not an object)
+   ashCanonicalizeJson('{invalid}');  // Error: invalid JSON
 
    // CORRECT
    ashCanonicalizeJson('{"key":"value"}');
@@ -239,7 +233,7 @@ console.log('Using context:', contextId);
    ```
 
 3. **Binary or file data**
-   - ASH doesn't support binary payloads directly
+   - ashcore doesn't support binary payloads directly
    - Base64 encode binary data first
 
 ### Inconsistent Canonicalization
@@ -259,11 +253,11 @@ console.log('Using context:', contextId);
 
 2. **Object key order in source**
    - Don't rely on insertion order
-   - Canonicalization handles sorting
+   - Canonicalization handles key sorting automatically (RFC 8785)
 
 3. **Unicode normalization**
-   - ASH uses NFC normalization
-   - Pre-normalize if using unusual Unicode
+   - ashcore applies NFC normalization automatically during canonicalization
+   - No manual pre-normalization is needed
 
 ---
 
@@ -271,43 +265,28 @@ console.log('Using context:', contextId);
 
 ### Handling Clock Drift
 
-**Symptom:** Requests fail intermittently with timing-related errors.
+**Symptom:** Requests fail intermittently with `ASH_TIMESTAMP_INVALID` (HTTP 482).
 
-**Server-Side Tolerance:**
-```javascript
-const MAX_CLOCK_DRIFT_MS = 5000; // 5 seconds
-
-function verifyTimestamp(clientTimestamp) {
-  const serverTime = Date.now();
-  const drift = Math.abs(serverTime - parseInt(clientTimestamp));
-
-  if (drift > MAX_CLOCK_DRIFT_MS) {
-    throw new Error('Timestamp outside acceptable range');
-  }
-}
-```
+**Built-in tolerance:**
+- Default max timestamp age: 300 seconds (5 minutes)
+- Default clock skew tolerance: 30 seconds
+- These can be configured via `maxAgeSeconds` and `clockSkewSeconds` in middleware options
 
 **Client-Side Best Practices:**
 ```javascript
-// Sync time with server if possible
-async function getSyncedTimestamp() {
-  const serverTime = await fetch('/api/time').then(r => r.json());
-  const localTime = Date.now();
-  const offset = serverTime.timestamp - localTime;
-
-  return Date.now() + offset;
-}
+// Generate timestamp as Unix seconds (not milliseconds)
+const timestamp = String(Math.floor(Date.now() / 1000));
 ```
 
 ### NTP Recommendations
 
 - Ensure all servers use NTP
 - Use same NTP source for client/server when possible
-- Allow 5-10 second drift tolerance
+- Default 30-second clock skew tolerance handles most NTP drift
 
 ---
 
-## Cross-SDK Compatibility
+## Rust / Node.js Interoperability
 
 ### Testing Interoperability
 
@@ -315,9 +294,9 @@ Before deploying, verify:
 
 1. **Canonicalization produces identical output**
    ```bash
-   # Test with conformance test vectors
-   npm run test:conformance --workspace=packages/ash-node-sdk
-   cargo test --all-features -p ashcore
+   # Run conformance test vectors (both SDKs share the same vectors.json)
+   cd packages/ash-node-sdk && npm test
+   cd packages/ashcore && cargo test
    ```
 
 2. **Proofs are compatible**
@@ -331,7 +310,7 @@ Before deploying, verify:
 |-------|----------|----------|
 | Binding format | Proof mismatch | Use `METHOD\|PATH\|QUERY` format |
 | Number handling | Different hash | Use string for precise decimals |
-| Unicode | Different canonical form | Ensure NFC normalization |
+| Unicode | Different canonical form | Both SDKs apply NFC normalization |
 | Line endings | Hash mismatch | Normalize to `\n` |
 
 ---
@@ -344,15 +323,19 @@ Before deploying, verify:
 
 **Solutions:**
 
-1. **Use appropriate security mode**
+1. **Use the orchestrator for the full pipeline**
    ```javascript
-   // Create context with appropriate mode
-   const ctx = await store.create({ binding, ttlMs: 30000, mode: 'balanced' });
+   import { ashBuildRequest } from '@3maem/ash-node-sdk';
 
-   // Generate proof using v2.1+ HMAC style
-   const clientSecret = ashDeriveClientSecret(nonce, contextId, binding);
-   const bodyHash = ashHashBody(canonical);
-   const proof = ashBuildProofHmac(clientSecret, bodyHash, timestamp, binding);
+   const result = ashBuildRequest({
+     nonce,
+     contextId,
+     method: 'POST',
+     path: '/api/transfer',
+     body: JSON.stringify({ amount: 100 }),
+   });
+   // result.proof, result.bodyHash, result.binding, result.timestamp
+   result.destroy(); // Clean up when done
    ```
 
 2. **Pre-canonicalize static payloads**
@@ -369,47 +352,52 @@ Before deploying, verify:
 
 1. **Use Redis in production**
    ```javascript
-   const store = new AshRedisStore(redisClient);
+   const store = new AshRedisStore({ client: redisClient });
+   // Redis handles TTL-based expiry natively
    ```
 
-2. **Reduce TTL**
+2. **Reduce TTL for AshMemoryStore**
    ```javascript
-   // Shorter TTL = faster cleanup
-   store.create({ ttlMs: 15000 });
-   ```
-
-3. **Run cleanup regularly**
-   ```javascript
-   setInterval(() => store.cleanup(), 60000);
+   // Shorter TTL = faster cleanup (default: 300 seconds)
+   const store = new AshMemoryStore({ ttlSeconds: 60 });
+   // Auto-cleanup runs every 60 seconds by default
    ```
 
 ---
 
 ## Debugging Tips
 
-### Enable Debug Logging
+### Enable Debug Tracing
 
 **Node.js:**
 ```javascript
-import { ashDebugTrace } from '@3maem/ash-node-sdk';
+import { ashBuildRequestDebug, ashFormatTrace } from '@3maem/ash-node-sdk';
 
-const result = ashBuildRequest({ ... });
-console.log(ashDebugTrace(result));
+const result = ashBuildRequestDebug({
+  nonce,
+  contextId,
+  method: 'POST',
+  path: '/api/transfer',
+  body: JSON.stringify({ amount: 100 }),
+});
+
+console.log(ashFormatTrace(result.trace));
+// Shows each pipeline step with timing, inputs, and outputs
+// Sensitive values (clientSecret) are REDACTED
 ```
 
 ### Log All Inputs
 
 When debugging proof failures, log:
 ```javascript
-console.log('=== ASH Debug ===');
+console.log('=== ashcore Debug ===');
 console.log('contextId:', contextId);
 console.log('binding:', binding);
 console.log('timestamp:', timestamp);
-console.log('payload (raw):', payload);
 console.log('payload (canonical):', canonical);
 console.log('bodyHash:', bodyHash);
 console.log('proof:', proof);
-console.log('=================');
+console.log('=====================');
 ```
 
 ### Compare Hashes Step by Step
@@ -421,23 +409,23 @@ const bodyHash = ashHashBody(canonical);
 console.log('Client bodyHash:', bodyHash);
 
 // Server
-const canonical = ashCanonicalizeJson(receivedBody);
-const bodyHash = ashHashBody(canonical);
-console.log('Server bodyHash:', bodyHash);
+const serverCanonical = ashCanonicalizeJson(receivedBody);
+const serverBodyHash = ashHashBody(serverCanonical);
+console.log('Server bodyHash:', serverBodyHash);
 
 // These MUST match
 ```
 
-### Use Test Vectors
+### Use Conformance Vectors
 
 Run the conformance test vectors to verify your implementation:
 
 ```bash
 # Node.js
-npm run test:conformance --workspace=packages/ash-node-sdk
+cd packages/ash-node-sdk && npm test
 
 # Rust
-cargo test --all-features -p ashcore
+cd packages/ashcore && cargo test
 ```
 
 ---
@@ -446,13 +434,13 @@ cargo test --all-features -p ashcore
 
 If you've tried the above and still have issues:
 
-1. **Check the error code** - See [Error Codes Reference](docs/reference/error-codes.md)
-2. **Search existing issues** - [GitHub Issues](https://github.com/3maem/ashcore/issues)
+1. **Check the error code** -- See [Error Codes Reference](reference/error-codes.md)
+2. **Search existing issues** -- [GitHub Issues](https://github.com/3maem/ashcore/issues)
 3. **Open a new issue** with:
-   - SDK version
+   - SDK and version (`ashcore` or `@3maem/ash-node-sdk`)
    - Error message and code
    - Minimal reproduction steps
-   - Debug output (sanitize secrets!)
+   - Debug trace output (sanitize secrets!)
 
 ---
 
@@ -460,6 +448,7 @@ If you've tried the above and still have issues:
 
 | Code | Error | Description |
 |------|-------|-------------|
+| 415 | `ASH_UNSUPPORTED_CONTENT_TYPE` | Content type not supported |
 | 450 | `ASH_CTX_NOT_FOUND` | Context not found |
 | 451 | `ASH_CTX_EXPIRED` | Context expired |
 | 452 | `ASH_CTX_ALREADY_USED` | Replay detected |
@@ -467,9 +456,15 @@ If you've tried the above and still have issues:
 | 461 | `ASH_BINDING_MISMATCH` | Endpoint mismatch |
 | 473 | `ASH_SCOPE_MISMATCH` | Scope hash mismatch |
 | 474 | `ASH_CHAIN_BROKEN` | Chain verification failed |
+| 475 | `ASH_SCOPED_FIELD_MISSING` | Required scoped field missing |
 | 482 | `ASH_TIMESTAMP_INVALID` | Timestamp validation failed |
-| 483 | `ASH_PROOF_MISSING` | Missing proof header |
+| 483 | `ASH_PROOF_MISSING` | Missing required header |
 | 484 | `ASH_CANONICALIZATION_ERROR` | Canonicalization failed |
+| 485 | `ASH_VALIDATION_ERROR` | Input validation failed |
+| 486 | `ASH_MODE_VIOLATION` | Security mode constraint violated |
+| 500 | `ASH_INTERNAL_ERROR` | Internal server error |
+
+See [Error Codes Reference](reference/error-codes.md) for full details.
 
 ---
 

@@ -1,8 +1,8 @@
-# ASH Conformance Governance
+# ashcore Conformance Governance
 
 ## Purpose
 
-This document defines the rules that govern the ASH conformance suite. These rules are non-negotiable. They exist to prevent behavioral divergence across SDKs and to ensure that the conformance vectors remain a single source of truth.
+This document defines the rules that govern the ashcore conformance suite. These rules are non-negotiable. They exist to prevent behavioral divergence across SDKs and to ensure that the conformance vectors remain a single source of truth.
 
 ## Definitions
 
@@ -36,10 +36,9 @@ When a version bump occurs:
 
 1. Increment `ash_version` in the vector generator
 2. Regenerate `vectors.json` from the Rust reference implementation (`cargo run --bin generate_vectors`)
-3. Update `ash_version` in all SDK manifests (Cargo.toml, package.json)
-4. Run all SDK conformance runners — every SDK must pass 134/134 (or the new total if vectors were added)
-5. All runners green — merge allowed
-6. Any runner red — merge blocked until the SDK is fixed
+3. Run all SDK conformance runners — every SDK must pass all vectors
+4. All runners green — merge allowed
+5. Any runner red — merge blocked until the SDK is fixed
 
 No exceptions. No "we'll fix it later" merges.
 
@@ -55,13 +54,13 @@ Vector IDs (e.g., `json-001`, `error-005`) are permanent. An ID must never be re
 
 ### 5. Reference Implementation
 
-The Rust core (`packages/ashcore`) is the reference implementation. All expected outputs in `vectors.json` are generated from Rust. When Rust behavior and another SDK disagree, Rust is correct and the other SDK must be fixed.
+The Rust crate (`packages/ashcore`) is the reference implementation. All expected outputs in `vectors.json` are generated from Rust. When Rust behavior and another SDK disagree, Rust is correct and the other SDK must be fixed.
 
-This does not mean Rust is permanently privileged — it means there is exactly one source of truth at any given time, and today that source is the Rust core.
+This does not mean Rust is permanently privileged — it means there is exactly one source of truth at any given time, and today that source is the Rust crate.
 
 ### 6. New Vector Addition
 
-New vectors may be added without a version bump **only if** they test existing behavior that was previously untested. The expected output must match what the current Rust core already produces.
+New vectors may be added without a version bump **only if** they test existing behavior that was previously untested. The expected output must match what the current Rust crate already produces.
 
 Adding vectors that test new behavior (new operations, new edge cases introduced by code changes) requires a version bump.
 
@@ -89,5 +88,5 @@ There are no exceptions to rules 1-4. If a situation arises that seems to requir
 
 | Date | Change |
 |------|--------|
-| 2026-02-07 | Initial governance document for ash_version 2.3.5 (134 vectors, 6 SDKs) |
+| 2026-02-07 | Initial governance document — ash_version 1.0.0, 134 vectors |
 | 2026-02-13 | Updated for v1.0.0 — 2 active SDKs (Rust, Node.js), removed legacy SDK runners |
