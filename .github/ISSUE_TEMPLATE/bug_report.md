@@ -11,28 +11,16 @@ A clear and concise description of what the bug is.
 
 ## SDK/Package
 - [ ] ashcore (Rust)
-- [ ] ash-wasm-sdk (WebAssembly)
 - [ ] ash-node-sdk (Node.js)
-- [ ] ash-python-sdk (Python)
-- [ ] ash-php-sdk (PHP)
-- [ ] ash-go-sdk (Go)
 
 ## Framework (if applicable)
 - [ ] Express.js
 - [ ] Fastify
-- [ ] FastAPI
-- [ ] Flask
-- [ ] Django
-- [ ] Laravel
-- [ ] CodeIgniter
-- [ ] WordPress
-- [ ] Drupal
-- [ ] Gin
 - [ ] Other: ___________
 
 ## Environment
 - OS: [e.g., Windows 11, Ubuntu 22.04, macOS 14]
-- Runtime version: [e.g., Node.js 20.x, Python 3.12, PHP 8.3]
+- Runtime: [e.g., Node.js 20.x, Rust 1.x]
 - ASH version: [e.g., 1.0.0]
 
 ## Steps To Reproduce

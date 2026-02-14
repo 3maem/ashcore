@@ -17,7 +17,6 @@ This document outlines the threat model for the ASH (Anti-tamper Security Hash) 
 
 - Web applications using HTTP/HTTPS
 - API servers and clients
-- WASM environments (browsers)
 
 ---
 

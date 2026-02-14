@@ -18,11 +18,7 @@ Describe how you envision this feature working.
 ## SDK/Package
 Which SDK(s) should this feature be added to?
 - [ ] ashcore (Rust)
-- [ ] ash-wasm-sdk (WebAssembly)
 - [ ] ash-node-sdk (Node.js)
-- [ ] ash-python-sdk (Python)
-- [ ] ash-php-sdk (PHP)
-- [ ] ash-go-sdk (Go)
 - [ ] All SDKs
 
 ## Use Case

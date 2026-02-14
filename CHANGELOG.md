@@ -35,10 +35,6 @@ and **640** (ash-node-sdk). All tests passing with zero regressions.
   codes with correct HTTP statuses), boundary conditions, cross-function integration, and advanced
   canonicalization coverage.
 
-### Added
-- **`packages/ash-wasm-sdk`**: Stub package (`Cargo.toml` + `src/lib.rs`) to unblock workspace
-  compilation. Implementation pending.
-
 ### Security
 
 #### ashcore Verification Review (2026-02-12)
@@ -74,13 +70,7 @@ for full details.
 - **H-3 (UTF-16 sort order)**: **FIXED.** JSON key sorting now uses UTF-16 code unit order per RFC 8785 Section 3.2.3 via `cmp_utf16_code_units()`. Previously used Rust's native UTF-8 byte order which diverged for supplementary characters (U+10000+).
 - **H-4 (float delegation to serde_json)**: **FIXED.** Custom JCS serializer (`jcs_serialize_value`) with ES6-compliant float formatting via `es6_format_number()` using the `ryu` crate. Correctly outputs `1e+21` instead of ryu's `1e21`.
 
-- **MEDIUM**: Fixed WASM scope CSV parsing not trimming whitespace — `"field1, field2"` produced `" field2"` causing scope hash mismatch
-- **MEDIUM**: Fixed Go regex cache (`sync.Map`) growing unbounded — DoS via many unique binding patterns; added `maxRegexCacheSize` (1000) with atomic counter and full-clear eviction
-- **MEDIUM**: Fixed PHP `canonicalizePayload()` missing JSON depth limit — `json_decode` without depth parameter bypassed the 64-depth limit enforced by `Canonicalize::ashParseJson()`
-- **MEDIUM**: Fixed Python `ash_build_proof_unified()` not validating timestamp format — allowed malformed (non-digit, leading-zero) timestamps; now calls `ash_validate_timestamp_format()` matching `ash_build_proof_hmac()`
-
 ### Fixed
-- Fixed WASM `.unwrap()` on `serde_json::to_string()` — replaced with `.expect()` for clearer panic messages under memory pressure
 - Fixed Rust compiler warnings for unused `MIN_NONCE_HEX_CHARS` and `MAX_NONCE_LENGTH` constants in `proof.rs` — added `#[allow(dead_code)]` (canonical copies in `validate.rs`)
 - Fixed Node.js vitest config excluding `src/**/*.test.ts` — 26 test files (1100+ tests) were not being run; changed `include` to cover both `tests/` and `src/` directories
 

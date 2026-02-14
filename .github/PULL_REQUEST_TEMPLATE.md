@@ -20,11 +20,7 @@ Fixes #(issue number)
 ## SDK/Package Changed
 
 - [ ] ashcore (Rust)
-- [ ] ash-wasm-sdk (WebAssembly)
 - [ ] ash-node-sdk (Node.js)
-- [ ] ash-python-sdk (Python)
-- [ ] ash-php-sdk (PHP)
-- [ ] ash-go-sdk (Go)
 - [ ] Documentation
 - [ ] CI/CD
 

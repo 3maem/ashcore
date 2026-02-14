@@ -5,11 +5,6 @@ on:
     types: [published]
   workflow_call:
     inputs:
-      package:
-        description: 'Package to publish'
-        required: false
-        type: string
-        default: 'all'
       dry_run:
         description: 'Dry run'
         required: false
@@ -17,14 +12,6 @@ on:
         default: false
   workflow_dispatch:
     inputs:
-      package:
-        description: 'Package to publish'
-        required: true
-        type: choice
-        options:
-          - ashcore
-          - ash-wasm-sdk
-          - all
       dry_run:
         description: 'Dry run (do not actually publish)'
         required: false
@@ -35,7 +22,6 @@ jobs:
   publish-core:
     name: Publish ashcore
     runs-on: ubuntu-latest
-    if: ${{ inputs.package == 'ashcore' || inputs.package == 'all' || github.event_name == 'release' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -72,44 +58,3 @@ jobs:
           echo "- Package: ashcore" >> $GITHUB_STEP_SUMMARY
           echo "- Version: $VERSION" >> $GITHUB_STEP_SUMMARY
           echo "- Registry: https://crates.io/crates/ashcore" >> $GITHUB_STEP_SUMMARY
-
-  publish-wasm:
-    name: Publish ash-wasm-sdk
-    runs-on: ubuntu-latest
-    needs: publish-core
-    if: ${{ always() && (inputs.package == 'ash-wasm-sdk' || inputs.package == 'all' || github.event_name == 'release') && (needs.publish-core.result == 'success' || needs.publish-core.result == 'skipped') }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-wasm-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Check package
-        run: cargo publish --dry-run -p ash-wasm-sdk
-
-      - name: Publish ash-wasm-sdk
-        if: ${{ !inputs.dry_run }}
-        run: cargo publish -p ash-wasm-sdk
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-      - name: Create publish summary
-        run: |
-          VERSION=$(grep -m1 'version' packages/ash-wasm-sdk/Cargo.toml | cut -d'"' -f2)
-          echo "## Published to crates.io" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Package: ash-wasm-sdk" >> $GITHUB_STEP_SUMMARY
-          echo "- Version: $VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "- Registry: https://crates.io/crates/ash-wasm-sdk" >> $GITHUB_STEP_SUMMARY

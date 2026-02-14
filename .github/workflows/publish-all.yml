@@ -8,18 +8,8 @@ on:
         required: false
         type: boolean
         default: true
-      pypi:
-        description: 'Publish to PyPI (ash-python-sdk)'
-        required: false
-        type: boolean
-        default: true
       crates:
-        description: 'Publish to crates.io (ashcore, ash-wasm-sdk)'
-        required: false
-        type: boolean
-        default: true
-      packagist:
-        description: 'Notify Packagist (3maem/ash-php-sdk)'
+        description: 'Publish to crates.io (ashcore)'
         required: false
         type: boolean
         default: true
@@ -31,31 +21,18 @@ jobs:
     uses: ./.github/workflows/publish-npm.yml
     secrets: inherit
 
-  publish-pypi:
-    name: PyPI
-    if: ${{ inputs.pypi }}
-    uses: ./.github/workflows/publish-pypi.yml
-    secrets: inherit
-
   publish-crates:
     name: crates.io
     if: ${{ inputs.crates }}
     uses: ./.github/workflows/publish-crates.yml
     with:
-      package: all
       dry_run: false
-    secrets: inherit
-
-  publish-packagist:
-    name: Packagist
-    if: ${{ inputs.packagist }}
-    uses: ./.github/workflows/publish-packagist.yml
     secrets: inherit
 
   summary:
     name: Summary
     runs-on: ubuntu-latest
-    needs: [publish-npm, publish-pypi, publish-crates, publish-packagist]
+    needs: [publish-npm, publish-crates]
     if: always()
 
     steps:
@@ -66,6 +43,4 @@ jobs:
           echo "| Registry | Package | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|---------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| npm | @3maem/ash-node-sdk | ${{ needs.publish-npm.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| PyPI | ash-python-sdk | ${{ needs.publish-pypi.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| crates.io | ashcore, ash-wasm-sdk | ${{ needs.publish-crates.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Packagist | 3maem/ash-php-sdk | ${{ needs.publish-packagist.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| crates.io | ashcore | ${{ needs.publish-crates.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY

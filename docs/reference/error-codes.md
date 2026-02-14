@@ -5,26 +5,13 @@
 
 This document defines the standard error codes used across all ASH SDK implementations to ensure interoperability and consistent error handling.
 
-## What's New in v2.3.5
-
-**Unique HTTP Status Codes**: Every ASH error code now maps to a unique HTTP status code. No more shared codes — each error is unambiguously identifiable by HTTP status alone:
-
-- `ASH_SCOPED_FIELD_MISSING` (HTTP 475) — Missing required scoped field
-- `ASH_CANONICALIZATION_ERROR` (HTTP 484, was 422) — Canonicalization failures
-- `ASH_VALIDATION_ERROR` (HTTP 485, was 400) — Input validation failures
-- `ASH_MODE_VIOLATION` (HTTP 486, was 400) — Security mode violations
-
-**Benefits:**
-- Unambiguous error identification from HTTP status alone
-- Better monitoring and alerting without parsing response bodies
-- Targeted retry strategies per error type
-- Faster debugging and root cause analysis
-
 ---
 
 ## Overview
 
 All ASH SDKs MUST implement the error codes defined in this specification. Error codes are used to communicate specific failure conditions during request verification.
+
+Every ASH error code maps to a **unique** HTTP status code for unambiguous identification — no shared codes. Each error is identifiable by HTTP status alone.
 
 ## Error Code Format
 
@@ -361,71 +348,6 @@ type AshErrorCode =
   | 'ASH_INTERNAL_ERROR';         // HTTP 500
 ```
 
-**Python:**
-```python
-class AshErrorCode(str, Enum):
-    CTX_NOT_FOUND = "ASH_CTX_NOT_FOUND"              # HTTP 450
-    CTX_EXPIRED = "ASH_CTX_EXPIRED"                  # HTTP 451
-    CTX_ALREADY_USED = "ASH_CTX_ALREADY_USED"        # HTTP 452
-    PROOF_INVALID = "ASH_PROOF_INVALID"              # HTTP 460
-    BINDING_MISMATCH = "ASH_BINDING_MISMATCH"        # HTTP 461
-    SCOPE_MISMATCH = "ASH_SCOPE_MISMATCH"            # HTTP 473
-    CHAIN_BROKEN = "ASH_CHAIN_BROKEN"                # HTTP 474
-    TIMESTAMP_INVALID = "ASH_TIMESTAMP_INVALID"      # HTTP 482
-    PROOF_MISSING = "ASH_PROOF_MISSING"              # HTTP 483
-    SCOPED_FIELD_MISSING = "ASH_SCOPED_FIELD_MISSING"      # HTTP 475
-    CANONICALIZATION_ERROR = "ASH_CANONICALIZATION_ERROR"  # HTTP 484
-    VALIDATION_ERROR = "ASH_VALIDATION_ERROR"             # HTTP 485
-    MODE_VIOLATION = "ASH_MODE_VIOLATION"                 # HTTP 486
-    UNSUPPORTED_CONTENT_TYPE = "ASH_UNSUPPORTED_CONTENT_TYPE"  # HTTP 415
-    INTERNAL_ERROR = "ASH_INTERNAL_ERROR"                 # HTTP 500
-```
-
-**Go:**
-```go
-type AshErrorCode string
-
-const (
-    ErrCtxNotFound            AshErrorCode = "ASH_CTX_NOT_FOUND"            // HTTP 450
-    ErrCtxExpired             AshErrorCode = "ASH_CTX_EXPIRED"              // HTTP 451
-    ErrCtxAlreadyUsed         AshErrorCode = "ASH_CTX_ALREADY_USED"         // HTTP 452
-    ErrProofInvalid           AshErrorCode = "ASH_PROOF_INVALID"            // HTTP 460
-    ErrBindingMismatch        AshErrorCode = "ASH_BINDING_MISMATCH"         // HTTP 461
-    ErrScopeMismatch          AshErrorCode = "ASH_SCOPE_MISMATCH"           // HTTP 473
-    ErrChainBroken            AshErrorCode = "ASH_CHAIN_BROKEN"             // HTTP 474
-    ErrTimestampInvalid       AshErrorCode = "ASH_TIMESTAMP_INVALID"        // HTTP 482
-    ErrProofMissing           AshErrorCode = "ASH_PROOF_MISSING"            // HTTP 483
-    ErrScopedFieldMissing     AshErrorCode = "ASH_SCOPED_FIELD_MISSING"    // HTTP 475
-    ErrCanonicalizationError  AshErrorCode = "ASH_CANONICALIZATION_ERROR"   // HTTP 484
-    ErrValidationError        AshErrorCode = "ASH_VALIDATION_ERROR"         // HTTP 485
-    ErrModeViolation          AshErrorCode = "ASH_MODE_VIOLATION"           // HTTP 486
-    ErrUnsupportedContentType AshErrorCode = "ASH_UNSUPPORTED_CONTENT_TYPE" // HTTP 415
-    ErrInternalError          AshErrorCode = "ASH_INTERNAL_ERROR"           // HTTP 500
-)
-```
-
-**PHP:**
-```php
-enum AshErrorCode: string
-{
-    case CtxNotFound = 'ASH_CTX_NOT_FOUND';              // HTTP 450
-    case CtxExpired = 'ASH_CTX_EXPIRED';                 // HTTP 451
-    case CtxAlreadyUsed = 'ASH_CTX_ALREADY_USED';        // HTTP 452
-    case ProofInvalid = 'ASH_PROOF_INVALID';             // HTTP 460
-    case BindingMismatch = 'ASH_BINDING_MISMATCH';       // HTTP 461
-    case ScopeMismatch = 'ASH_SCOPE_MISMATCH';           // HTTP 473
-    case ChainBroken = 'ASH_CHAIN_BROKEN';               // HTTP 474
-    case TimestampInvalid = 'ASH_TIMESTAMP_INVALID';     // HTTP 482
-    case ProofMissing = 'ASH_PROOF_MISSING';             // HTTP 483
-    case ScopedFieldMissing = 'ASH_SCOPED_FIELD_MISSING';        // HTTP 475
-    case CanonicalizationError = 'ASH_CANONICALIZATION_ERROR';  // HTTP 484
-    case ValidationError = 'ASH_VALIDATION_ERROR';              // HTTP 485
-    case ModeViolation = 'ASH_MODE_VIOLATION';                  // HTTP 486
-    case UnsupportedContentType = 'ASH_UNSUPPORTED_CONTENT_TYPE';  // HTTP 415
-    case InternalError = 'ASH_INTERNAL_ERROR';                  // HTTP 500
-}
-```
-
 ---
 
 ## Error Response Format
@@ -482,24 +404,13 @@ If your SDK uses different error codes, map them to the standard codes:
 | `INVALID_CONTEXT` | `ASH_CTX_NOT_FOUND` |
 | `PROOF_MISMATCH` | `ASH_PROOF_INVALID` |
 
-| Legacy (Python/Go) | Standard |
-|--------------------|----------|
-| `ASH_INVALID_CONTEXT` | `ASH_CTX_NOT_FOUND` |
-| `ASH_REPLAY_DETECTED` | `ASH_CTX_ALREADY_USED` |
-| `ASH_INTEGRITY_FAILED` | `ASH_PROOF_INVALID` |
-| `ASH_ENDPOINT_MISMATCH` | `ASH_BINDING_MISMATCH` |
-
 ---
 
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 2.3.5 | 2026-02-07 | Unique HTTP status codes for all errors: ASH_SCOPED_FIELD_MISSING (475), ASH_CANONICALIZATION_ERROR (484), ASH_VALIDATION_ERROR (485), ASH_MODE_VIOLATION (486) |
-| 2.3.4 | 2026-02-05 | Added ASH_VALIDATION_ERROR, ASH_TIMESTAMP_INVALID, ASH_INTERNAL_ERROR |
-| 2.0.0 | 2026-02-02 | Unique HTTP status codes (450-499 range) for all ASH errors |
-| 1.1.0 | 2026-01-29 | Updated HTTP status codes for better semantics |
-| 1.0.0 | 2026-01-28 | Initial specification |
+| 1.0.0 | 2026-02-07 | Unique HTTP status codes for all errors; initial stable release |
 
 ---
 

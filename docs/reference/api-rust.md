@@ -52,9 +52,9 @@ pub enum AshErrorCode {
     ChainBroken,           // HTTP 474
     TimestampInvalid,      // HTTP 482
     ProofMissing,          // HTTP 483
-    CanonicalizationError, // HTTP 422
-    MalformedRequest,      // HTTP 400
-    ModeViolation,         // HTTP 400
+    CanonicalizationError, // HTTP 484
+    ValidationError,       // HTTP 485
+    ModeViolation,         // HTTP 486
     UnsupportedContentType,// HTTP 415
     InternalError,         // HTTP 500
 }

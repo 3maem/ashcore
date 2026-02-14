@@ -13,13 +13,17 @@ npm install @3maem/ash-node-sdk
 
 ---
 
-## Initialization
+## Exports
 
 ```typescript
-import { ashInit } from '@3maem/ash-node-sdk';
-
-// Call once before using other functions
-ashInit();
+import {
+  ashBuildRequest,
+  ashVerifyRequest,
+  ashExpressMiddleware,
+  ashFastifyPlugin,
+  AshMemoryStore,
+  ashDebugTrace,
+} from '@3maem/ash-node-sdk';
 ```
 
 ---
@@ -170,6 +174,26 @@ const binding = ashNormalizeBinding('post', '/api//test/');
 
 ---
 
+## Build / Verify Orchestrators
+
+### ashBuildRequest
+
+```typescript
+function ashBuildRequest(input: AshBuildRequestInput): AshBuildRequestResult
+```
+
+One-call orchestrator that canonicalizes, hashes, derives the secret, and builds the proof + headers.
+
+### ashVerifyRequest
+
+```typescript
+function ashVerifyRequest(input: AshVerifyRequestInput): AshVerifyResult
+```
+
+One-call orchestrator that extracts headers, looks up context, and verifies the proof.
+
+---
+
 ## Context Stores
 
 ### AshMemoryStore
@@ -226,6 +250,17 @@ fastify.register(ashFastifyPlugin, {
   store,
   protectedPaths: ['/api/*'],
 });
+```
+
+---
+
+## Debug Trace
+
+```typescript
+import { ashDebugTrace } from '@3maem/ash-node-sdk';
+
+const trace = ashDebugTrace(buildResult);
+console.log(trace);
 ```
 
 ---

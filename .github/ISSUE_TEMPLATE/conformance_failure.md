@@ -11,11 +11,8 @@ assignees: ''
 An SDK is not producing the expected output for a test vector.
 
 ## SDK/Package
+- [ ] ashcore (Rust — reference implementation)
 - [ ] ash-node-sdk (Node.js)
-- [ ] ash-python-sdk (Python)
-- [ ] ash-php-sdk (PHP)
-- [ ] ash-go-sdk (Go)
-- [ ] ash-wasm-sdk (WebAssembly)
 
 ## Test Vector
 Which test vector is failing?

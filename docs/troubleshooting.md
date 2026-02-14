@@ -80,25 +80,27 @@ This guide covers common issues and their solutions when integrating ASH into yo
 **Diagnosis:**
 
 1. Check canonicalization output:
-   ```python
-   # Both should produce identical output
-   # Python
-   canonical = ash_canonicalize_json('{"z":1,"a":2}')
-   print(repr(canonical))  # '{"a":2,"z":1}'
-
-   # Node.js
+   ```javascript
+   // Both SDKs should produce identical output
+   // Node.js
    const canonical = ashCanonicalizeJson('{"z":1,"a":2}');
    console.log(canonical);  // {"a":2,"z":1}
    ```
 
+   ```rust
+   // Rust
+   let canonical = ash_canonicalize_json(r#"{"z":1,"a":2}"#).unwrap();
+   assert_eq!(canonical, r#"{"a":2,"z":1}"#);
+   ```
+
 2. Compare intermediate values:
-   ```python
-   # Debug: Print all inputs
-   print(f"clientSecret: {client_secret}")
-   print(f"timestamp: {timestamp}")
-   print(f"binding: {binding}")
-   print(f"bodyHash: {body_hash}")
-   print(f"proof: {proof}")
+   ```javascript
+   // Debug: Print all inputs
+   console.log('clientSecret:', clientSecret);
+   console.log('timestamp:', timestamp);
+   console.log('binding:', binding);
+   console.log('bodyHash:', bodyHash);
+   console.log('proof:', proof);
    ```
 
 **Common Cross-SDK Issues:**
@@ -214,9 +216,9 @@ console.log('Using context:', contextId);
 
 ## Canonicalization Issues
 
-### ASH_CANONICALIZATION_ERROR (HTTP 422)
+### ASH_CANONICALIZATION_ERROR (HTTP 484)
 
-**Symptom:** Payload cannot be canonicalized (HTTP 422).
+**Symptom:** Payload cannot be canonicalized (HTTP 484).
 
 **Common Causes:**
 
@@ -313,9 +315,9 @@ Before deploying, verify:
 
 1. **Canonicalization produces identical output**
    ```bash
-   # Test with cross-SDK test vectors
-   cd tests/cross-sdk
-   python run_tests.py
+   # Test with conformance test vectors
+   npm run test:conformance --workspace=packages/ash-node-sdk
+   cargo test --all-features -p ashcore
    ```
 
 2. **Proofs are compatible**
@@ -389,14 +391,10 @@ Before deploying, verify:
 
 **Node.js:**
 ```javascript
-import { ashInit } from '@3maem/ash-node-sdk';
-ashInit({ debug: true });
-```
+import { ashDebugTrace } from '@3maem/ash-node-sdk';
 
-**Python:**
-```python
-import logging
-logging.getLogger('ash').setLevel(logging.DEBUG)
+const result = ashBuildRequest({ ... });
+console.log(ashDebugTrace(result));
 ```
 
 ### Log All Inputs
@@ -432,12 +430,14 @@ console.log('Server bodyHash:', bodyHash);
 
 ### Use Test Vectors
 
-Run the cross-SDK test vectors to verify your implementation:
+Run the conformance test vectors to verify your implementation:
 
 ```bash
-cd tests/cross-sdk
-# Run against your SDK
-python verify_sdk.py --sdk node
+# Node.js
+npm run test:conformance --workspace=packages/ash-node-sdk
+
+# Rust
+cargo test --all-features -p ashcore
 ```
 
 ---
@@ -469,9 +469,9 @@ If you've tried the above and still have issues:
 | 474 | `ASH_CHAIN_BROKEN` | Chain verification failed |
 | 482 | `ASH_TIMESTAMP_INVALID` | Timestamp validation failed |
 | 483 | `ASH_PROOF_MISSING` | Missing proof header |
-| 422 | `ASH_CANONICALIZATION_ERROR` | Canonicalization failed |
+| 484 | `ASH_CANONICALIZATION_ERROR` | Canonicalization failed |
 
 ---
 
 **Document Version:** 1.0.0
-**Last Updated:** 2026-02-06
+**Last Updated:** 2026-02-14
