@@ -21,7 +21,7 @@ ASH Core provides the foundational cryptographic primitives and canonicalization
 - **Anti-Replay Protection**: Single-use context enforcement with TTL
 - **Field Scoping**: Protect specific fields while allowing others to change
 - **Request Chaining**: Link sequential requests cryptographically
-- **WASM Compatible**: Works in browsers via ash-wasm-sdk bindings
+- **Zero Dependencies (Runtime)**: Pure Rust with no C dependencies
 
 ## Installation
 
@@ -166,10 +166,6 @@ It should be used alongside authentication systems (JWT, OAuth, etc.).
 - **[SPECIFICATION.md](SPECIFICATION.md)** - Complete protocol specification for SDK implementers
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history and migration guides
 - **[API Documentation](https://docs.rs/ashcore)** - Full Rust API docs
-
-## Related Crates
-
-- [`ash-wasm-sdk`](https://crates.io/crates/ash-wasm-sdk) - WebAssembly bindings
 
 ## License
 

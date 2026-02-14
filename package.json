@@ -7,18 +7,15 @@
   "license": "Apache-2.0",
   "workspaces": [
     "packages/ash-node-sdk",
-    "packages/ash-wasm-sdk",
     "examples/*"
   ],
   "scripts": {
-    "build": "npm run build:wasm && npm run build:node",
-    "build:wasm": "cd packages/ash-wasm-sdk && wasm-pack build --target web",
+    "build": "npm run build:node",
     "build:node": "cd packages/ash-node-sdk && npm run build",
     "build:rust": "cargo build --release",
     "test": "npm run test:rust && npm run test:node",
     "test:rust": "cargo test",
     "test:node": "cd packages/ash-node-sdk && npm test",
-    "test:php": "cd packages/ash-php-sdk && composer test",
     "lint": "npm run lint:rust && npm run lint:node",
     "lint:rust": "cargo clippy -- -D warnings",
     "lint:node": "cd packages/ash-node-sdk && npm run lint",

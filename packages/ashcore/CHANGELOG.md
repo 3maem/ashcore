@@ -319,8 +319,7 @@ filling coverage gaps identified by systematic analysis of the existing 32-file 
 
 ### Changed
 - **Build**: Removed `cdylib` from `crate-type` in `Cargo.toml` — `ashcore` is consumed as
-  `rlib` by all dependents (including `ash-wasm-sdk` which has its own `cdylib`). The `cdylib`
-  output was unused and added unnecessary build overhead.
+  `rlib` by all dependents. The `cdylib` output was unused and added unnecessary build overhead.
 - **Dependencies**: Removed `lazy_static` dependency (replaced by `std::sync::LazyLock`).
 - Total test count increased from ~1,768 to **1,771 tests** (all passing, 134/134 conformance vectors)
 
@@ -337,7 +336,7 @@ filling coverage gaps identified by systematic analysis of the existing 32-file 
   - Binding value normalization: all BindingTypes (IP, User, Device, etc.), NFC, control chars
   - Header extraction: required/optional, case insensitivity, multi-value, control chars
   - Full verify_incoming_request pipeline: valid, tampered body, wrong endpoint
-  - Scope policy registry: wildcards, exact vs wildcard priority, Flask/Express/Laravel params, escapes
+  - Scope policy registry: wildcards, exact vs wildcard priority, Express params, escapes
   - Error types: unique HTTP status codes, serde roundtrip, retryable classification
   - Enriched API: body hash, binding, parse binding, consistency checks
   - Security attacks: SQL injection, path traversal, null bytes, replay, spoofing, DoS
@@ -485,7 +484,7 @@ filling coverage gaps identified by systematic analysis of the existing 32-file 
 - Cryptographic property tests (avalanche, collision resistance, entropy)
 - Security audit tests (OWASP Top 10 coverage)
 - Performance benchmarks
-- WASM compatibility
+- Cross-platform compatibility
 
 ### Security
 - Timing-safe comparison for all sensitive operations

@@ -118,36 +118,3 @@ cargo run --bin generate_vectors
 |-----|---------|-------------|
 | **Rust** | `cargo test --test conformance_suite` | `packages/ashcore/tests/conformance_suite.rs` |
 | **Node.js** | `npm test` (in ash-node-sdk) | `packages/ash-node-sdk/tests/conformance.test.ts` |
-| **Python** | `pytest tests/test_conformance.py` | `packages/ash-python-sdk/tests/test_conformance.py` |
-| **Go** | `go test -run TestConformanceSuite` | `packages/ash-go-sdk/conformance_suite_test.go` |
-| **PHP** | `composer test` (in ash-php-sdk) | `packages/ash-php-sdk/tests/ConformanceSuiteTest.php` |
-| **WASM** (Rust-native) | `cargo test -p ash-wasm-sdk --test conformance_suite` | `packages/ash-wasm-sdk/tests/conformance_suite.rs` |
-| **WASM** (JS-in-Node) | `node packages/ash-wasm-sdk/tests/conformance_wasm.mjs` | `packages/ash-wasm-sdk/tests/conformance_wasm.mjs` |
-
-## SDK-Specific Notes
-
-### Go
-
-- **`AshNormalizeBinding`** is the legacy API. It may auto-fix invalid inputs (e.g., prepending `/` to paths without a leading slash) for backward compatibility.
-- **`AshNormalizeBindingStrict`** is the conformance-aligned API. It returns `(string, error)` and rejects invalid inputs (empty method, missing leading slash, non-ASCII method).
-- The conformance runner uses `AshNormalizeBindingStrict` for binding normalization vectors.
-- Similarly, `AshBuildProofHMACValidated`, `AshHashProofValidated`, and `AshExtractScopedFieldsStrict` are the validating variants used by the conformance runner. The non-validating originals remain for backward compatibility.
-
-### PHP
-
-- **`Canonicalize::ashNormalizeBinding`** is the legacy API. It auto-fixes invalid inputs (e.g., prepending `/`) for backward compatibility.
-- **`Canonicalize::ashNormalizeBindingStrict`** is the conformance-aligned API. It throws `ValidationException` for invalid inputs (empty method, missing leading slash, non-ASCII method).
-- **`Canonicalize::ashParseJson`** is the conformance entry point for JSON canonicalization. It takes raw JSON text, enforces size (10 MB) and depth (64) limits, and returns canonical output.
-- **`Proof::ashBuildProofHmacValidated`**, **`Proof::ashHashProofValidated`**, and **`Proof::ashExtractScopedFieldsStrict`** are the validating variants used by the conformance runner.
-- The conformance runner uses strict/validated APIs for all error behavior vectors.
-
-### WASM
-
-- The WASM crate (`ash-wasm-sdk`) provides two API layers:
-  - **`native` module:** Pure Rust API returning `Result<T, AshError>`, testable on all platforms
-  - **`wasm_bindgen` exports:** Thin JsValue wrappers around the native module for JS consumption
-- **Rust-native testing** uses `cargo test` against the `rlib` target via `ash_wasm::native::*` (no wasm-pack needed).
-- **Coverage:** 134/134 vectors tested Rust-native (100%). All categories including errors, scoped, and unified.
-- WASM exports return structured error objects `{ code, http_status, message }` matching the conformance error spec.
-- New WASM exports: `ashHashScope`, `ashExtractScopedFields`, `ashExtractScopedFieldsStrict`.
-- Scoped/unified proof exports return proper JS objects (`{ proof, scopeHash }` / `{ proof, scopeHash, chainHash }`).
