@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "description": "ASH example with Express.js",
-  "main": "server.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
   },
   "dependencies": {
     "@3maem/ash-node-sdk": "file:../../packages/ash-node-sdk",

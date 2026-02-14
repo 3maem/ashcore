@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (2026-02-14)
+- Removed legacy SDK references from `ROADMAP.md` (Phase 4: deleted Go/Python/PHP/WASM rebuild lines)
+- Removed non-existent `ashInit()` from Express example (`examples/express-example.ts`)
+
 ## [1.2.0] - 2026-02-13
 
 ### Added — Phase 3: Developer Experience (2026-02-13)

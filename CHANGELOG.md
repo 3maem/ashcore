@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Repository Cleanup (2026-02-14)
+
+Removed all references to deleted legacy SDKs (Go, Python, PHP, WASM) across 28 files
+in 5 commits. The ASH repo now cleanly reflects its current architecture: Rust (`ashcore`)
+and Node.js (`ash-node-sdk`) only.
+
+- **CI workflows** (7 files): Removed WASM build steps, Python/Go security scans, CodeQL
+  for Python/Go, PyPI/Packagist publish jobs, and WASM publish jobs from `node.yml`,
+  `rust.yml`, `publish-crates.yml`, `publish-npm.yml`, `publish-all.yml`, `release.yml`,
+  `security-scan.yml`
+- **Docs** (6 files): Rewrote `middleware.md` to Node.js only, removed Python/Go/PHP code
+  examples from `error-codes.md` and `troubleshooting.md`, fixed `api-node.md` exports,
+  corrected HTTP status codes in `api-rust.md`, removed WASM from `threat-model.md`
+- **Templates** (4 files): Simplified SDK/framework checklists in bug report, conformance
+  failure, feature request, and PR templates to ashcore + ash-node-sdk only
+- **Config** (5 files): Removed `ash-wasm-sdk` from Cargo workspace and npm workspaces,
+  cleaned `ashcore/README.md` and `ashcore/CHANGELOG.md`, updated conformance test README
+- **Scripts** (2 files): Simplified `test-conformance-all.sh` and `generate-docs.sh` to
+  Rust + Node.js only
+- **Other** (4 files): Cleaned `.gitignore`, `ROADMAP.md`, Express example (`ashInit()`
+  removal), `lib.rs` doc comment (WASM Compatible -> Zero Dependencies)
+
 ### Testing
 
 #### Comprehensive Test Expansion (2026-02-12)

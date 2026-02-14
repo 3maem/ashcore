@@ -86,10 +86,23 @@ Zero new runtime dependencies — Node.js `parseArgs` is built-in since Node 18.
 - Sensitive data REDACTED in all trace output
 - Exit codes: 0 (success), 1 (invalid proof), 2 (usage error), 3 (internal error)
 
-### Phase 3.1: Migration Guide
-- Migration guide from legacy SDK (TODO)
+### Phase 3.1: Migration Guide [TODO]
+- Migration guide from legacy SDK
+
+### Phase 3.2: Repository Cleanup [COMPLETE]
+- Removed all legacy SDK references (Go, Python, PHP, WASM) across 28 files
+- CI workflows, docs, templates, config, scripts all updated for Rust + Node.js only
+- Zero legacy references remaining (verified by exhaustive grep)
 
 ## Phase 4: Ecosystem
 
+### Phase 4.1: Publish to npm [TODO]
 - Publish `@3maem/ash-node-sdk` to npm
-- Cross-SDK integration test harness
+- Verify package contents, exports map, peer deps
+
+### Phase 4.2: Publish ashcore to crates.io [TODO]
+- `cargo publish` for `ashcore`
+- Verify crate metadata, features, dependencies
+
+### Phase 4.3: Cross-SDK Integration Test Harness [TODO]
+- Automated cross-SDK conformance verification

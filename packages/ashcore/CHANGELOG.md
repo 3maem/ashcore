@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed (2026-02-14)
+- Updated `lib.rs` crate-level documentation: replaced "WASM Compatible" feature with
+  "Zero Dependencies" to reflect current architecture (WASM SDK was removed)
+
 ### Security (Verification Review — 2026-02-12)
 
 Second-pass line-by-line review of all 15 source files (~9,800 lines) in `ashcore/src`.
