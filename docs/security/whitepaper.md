@@ -46,12 +46,12 @@ Each request becomes **verifiable** and **non-reusable**.
 
 ## Security Model
 
-### ASH Guarantees
+### ASH Enforces
 
-- Requests are authentic
-- Requests were not modified
-- Requests are not replayed
-- Requests are bound to their endpoint
+- Request authenticity verification
+- Request integrity validation
+- Replay prevention
+- Endpoint binding
 
 ### ASH Does NOT Replace
 
