@@ -98,11 +98,15 @@ See [`tests/conformance/README.md`](tests/conformance/README.md) for vector form
 ## Documentation
 
 - [Security Guide](docs/security/security-checklist.md)
+- [Security Whitepaper](docs/security/whitepaper.md)
 - [Architecture](docs/security/architecture.md)
+- [Attack Scenarios](docs/security/attack-scenarios.md)
+- [Threat Model](docs/security/threat-model.md)
 - [Error Codes](docs/reference/error-codes.md)
 - [API Reference — Node.js](docs/reference/api-node.md)
 - [API Reference — Rust](docs/reference/api-rust.md)
 - [Middleware Reference](docs/reference/middleware.md)
+- [Conformance Governance](docs/conformance-governance.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
 ---
