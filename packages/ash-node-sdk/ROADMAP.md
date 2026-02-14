@@ -92,6 +92,4 @@ Zero new runtime dependencies — Node.js `parseArgs` is built-in since Node 18.
 ## Phase 4: Ecosystem
 
 - Publish `@3maem/ash-node-sdk` to npm
-- Refresh Go/Python/PHP SDKs to match Layer 1 pattern
-- WASM SDK rebuild
 - Cross-SDK integration test harness
