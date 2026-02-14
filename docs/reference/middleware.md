@@ -31,14 +31,7 @@ import { ashExpressMiddleware, AshMemoryStore } from '@3maem/ash-node-sdk';
 
 const store = new AshMemoryStore();
 
-app.post(
-  '/api/update',
-  ashExpressMiddleware({
-    store,
-    expectedBinding: 'POST /api/update',
-  }),
-  handler
-);
+app.use(ashExpressMiddleware({ store }));
 ```
 
 ## Fastify Plugin
@@ -48,10 +41,7 @@ import { ashFastifyPlugin, AshMemoryStore } from '@3maem/ash-node-sdk';
 
 const store = new AshMemoryStore();
 
-fastify.register(ashFastifyPlugin, {
-  store,
-  protectedPaths: ['/api/*'],
-});
+fastify.register(ashFastifyPlugin, { store });
 ```
 
 See [Node.js API Reference](api-node.md) for full documentation.

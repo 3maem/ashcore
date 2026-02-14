@@ -47,7 +47,7 @@ pub const DEFAULT_CLOCK_SKEW_SECONDS: u64 = 30;
 | `ash_build_proof_scoped(...)` | Build proof protecting specific fields |
 | `ash_verify_proof_scoped(...)` | Verify scoped proof |
 | `ash_extract_scoped_fields(payload, scope)` | Extract fields (lenient) |
-| `ash_extract_scoped_fields_strict(payload, scope)` | Extract fields (strict, throws on missing) |
+| `ash_extract_scoped_fields_strict(payload, scope, strict)` | Extract fields with strict mode flag |
 | `ash_hash_scoped_body(payload, scope)` | Hash only scoped fields |
 | `ash_hash_scoped_body_strict(payload, scope)` | Hash scoped fields (strict) |
 
@@ -94,7 +94,7 @@ pub const DEFAULT_CLOCK_SKEW_SECONDS: u64 = 30;
 | `ash_generate_context_id()` | Generate unique context ID (128-bit) |
 | `ash_generate_context_id_256()` | Generate context ID (256-bit) |
 | `ash_timing_safe_equal(a, b)` | Constant-time comparison |
-| `ash_timing_safe_compare(a, b)` | Constant-time comparison (fixed-length) |
+| `ash_timing_safe_compare(a, b)` | Constant-time string comparison (convenience wrapper) |
 | `ash_validate_nonce(nonce)` | Validate nonce format |
 
 ---
@@ -193,7 +193,7 @@ let is_valid = ash_verify_proof(
 
 ## Error Handling
 
-All functions return `Result<T, AshError>`. See [Error Codes Reference](error-codes.md).
+Fallible functions return `Result<T, AshError>`. Hash functions (`ash_hash_body`, `ash_hash_scope`) return `String` directly. Comparison functions (`ash_timing_safe_equal`, `ash_timing_safe_compare`) return `bool`. See [Error Codes Reference](error-codes.md).
 
 ---
 

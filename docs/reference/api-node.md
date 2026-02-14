@@ -377,7 +377,7 @@ Production-ready store with atomic operations.
 
 ```typescript
 import { AshRedisStore } from '@3maem/ash-node-sdk';
-const store = new AshRedisStore(redisClient);
+const store = new AshRedisStore({ client: redisClient });
 ```
 
 ---
@@ -402,14 +402,7 @@ import { ashExpressMiddleware, AshMemoryStore } from '@3maem/ash-node-sdk';
 
 const store = new AshMemoryStore();
 
-app.post(
-  '/api/update',
-  ashExpressMiddleware({
-    store,
-    expectedBinding: 'POST /api/update',
-  }),
-  handler
-);
+app.use(ashExpressMiddleware({ store }));
 ```
 
 ---
@@ -421,10 +414,7 @@ import { ashFastifyPlugin, AshMemoryStore } from '@3maem/ash-node-sdk';
 
 const store = new AshMemoryStore();
 
-fastify.register(ashFastifyPlugin, {
-  store,
-  protectedPaths: ['/api/*'],
-});
+fastify.register(ashFastifyPlugin, { store });
 ```
 
 ---
