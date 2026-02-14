@@ -6,14 +6,10 @@
 
 import express from 'express';
 import {
-  ashInit,
   AshMemoryStore,
   ashExpressMiddleware,
   ashNormalizeBinding,
 } from '@3maem/ash-node-sdk';
-
-// Initialize ASH
-ashInit();
 
 const app = express();
 const store = new AshMemoryStore();
