@@ -1,293 +1,200 @@
-# ASH Error Code Specification
+# ashcore Error Code Reference
 
 **Version:** 1.0.0
-**Date:** 2026-02-07
 
-This document defines the standard error codes used across all ASH SDK implementations to ensure interoperability and consistent error handling.
+Every ashcore error code maps to a **unique** HTTP status code for unambiguous identification.
 
 ---
-
-## Overview
-
-All ASH SDKs MUST implement the error codes defined in this specification. Error codes are used to communicate specific failure conditions during request verification.
-
-Every ASH error code maps to a **unique** HTTP status code for unambiguous identification — no shared codes. Each error is identifiable by HTTP status alone.
 
 ## Error Code Format
 
-All error codes MUST:
+All error codes:
 - Use the `ASH_` prefix
 - Use `SCREAMING_SNAKE_CASE` format
-- Be returned as strings in API responses
-
-Example: `ASH_CONTEXT_EXPIRED`
+- Are returned as strings in API responses
 
 ---
 
-## Standard Error Codes
-
 ## Error Categories
-
-ASH error codes are organized into categories with dedicated HTTP status code ranges:
 
 | Category | HTTP Range | Purpose |
 |----------|------------|---------|
 | Context errors | 450-459 | Context lifecycle issues |
-| Seal/Proof errors | 460-469 | Cryptographic verification failures |
-| Binding errors | 461 | Endpoint binding mismatch |
+| Proof errors | 460-469 | Cryptographic verification failures |
 | Verification errors | 473-479 | Scope/chain/field verification issues |
-| Format/Protocol errors | 480-486 | Malformed requests, validation, canonicalization |
+| Format errors | 480-486 | Malformed requests, validation, canonicalization |
 
 ---
 
 ## Context Errors (450-459)
 
-### ASH_CTX_NOT_FOUND
-
-**HTTP Status:** 450
+### ASH_CTX_NOT_FOUND — HTTP 450
 
 The provided `contextId` does not exist or is unknown to the server.
 
-**Possible Causes:**
-- Invalid or malformed contextId
-- Context already consumed (single-use)
-- Context store reset or cleared
-- Typo in contextId
+**Causes:** Invalid contextId, context already consumed, context store cleared.
 
-**Client Action:** Request a new context
+**Action:** Request a new context.
 
 ---
 
-### ASH_CTX_EXPIRED
+### ASH_CTX_EXPIRED — HTTP 451
 
-**HTTP Status:** 451
+The context exists but has exceeded its TTL.
 
-The context exists but has exceeded its TTL (time-to-live).
+**Causes:** Request sent after expiration, clock drift, network delay.
 
-**Possible Causes:**
-- Request sent after context expiration
-- Client/server clock drift beyond tolerance
-- Network latency caused delay
-
-**Client Action:** Request a new context with appropriate TTL
+**Action:** Request a new context with appropriate TTL.
 
 ---
 
-### ASH_CTX_ALREADY_USED
+### ASH_CTX_ALREADY_USED — HTTP 452
 
-**HTTP Status:** 452
+The context has already been consumed (single-use enforcement).
 
-The context or proof has already been successfully consumed.
+**Causes:** Replay attack, duplicate submission, network retry without new context.
 
-**Possible Causes:**
-- Replay attack attempt
-- Duplicate request submission (e.g., double-click)
-- Network retry without obtaining new context
-
-**Client Action:** Request a new context for each request
+**Action:** Request a new context for each request.
 
 ---
 
-## Seal/Proof Errors (460-469)
+## Proof Errors (460-461)
 
-### ASH_PROOF_INVALID
+### ASH_PROOF_INVALID — HTTP 460
 
-**HTTP Status:** 460
+The proof does not match the expected value.
 
-The provided proof does not match the expected value.
+**Causes:** Payload modified after signing, canonicalization mismatch, wrong secret, timestamp mismatch.
 
-**Possible Causes:**
-- Payload modified after proof generation
-- Canonicalization mismatch between client and server
-- Incorrect mode or binding used
-- Wrong client secret
-- Timestamp mismatch
-
-**Client Action:** Verify proof generation matches server expectations
+**Action:** Verify proof generation matches server expectations.
 
 ---
 
-## Binding Errors (461)
-
-### ASH_BINDING_MISMATCH
-
-**HTTP Status:** 461
+### ASH_BINDING_MISMATCH — HTTP 461
 
 The request does not match the binding associated with the context.
 
-**Possible Causes:**
-- Request sent to different endpoint than context was issued for
-- HTTP method mismatch (e.g., POST vs PUT)
-- Query string mismatch
-- Context reused for another operation
+**Causes:** Wrong endpoint, method mismatch, query string mismatch.
 
-**Client Action:** Ensure context binding matches request endpoint
-
-### ASH_SCOPE_MISMATCH
-
-**HTTP Status:** 473
-
-The scope hash does not match the expected scoped fields (v2.2+).
-
-**Possible Causes:**
-- Scoped fields modified
-- Incorrect scope specification
-- Scope hash calculation error
-
-**Client Action:** Verify scoped fields match server policy
+**Action:** Ensure context binding matches request endpoint.
 
 ---
 
-### ASH_CHAIN_BROKEN
+## Verification Errors (473-475)
 
-**HTTP Status:** 474
+### ASH_SCOPE_MISMATCH — HTTP 473
 
-The request chain verification failed (v2.3+).
+The scope hash does not match the expected scoped fields.
 
-**Possible Causes:**
-- Previous proof missing or invalid
-- Chain hash mismatch
-- Out-of-order request in chain
+**Causes:** Scoped fields modified, incorrect scope specification, hash calculation error.
 
-**Client Action:** Ensure correct previous proof is provided
+**Action:** Verify scoped fields match server policy.
 
 ---
 
-### ASH_SCOPED_FIELD_MISSING
+### ASH_CHAIN_BROKEN — HTTP 474
 
-**HTTP Status:** 475
+Request chain verification failed.
 
-A required scoped field is missing from the payload (v2.2+, strict mode).
+**Causes:** Previous proof missing or invalid, chain hash mismatch, out-of-order request.
 
-**Possible Causes:**
-- Payload is missing a field required by the scope policy
-- Field name typo in payload or scope definition
-- Scope policy updated but client not aware
-
-**Client Action:** Ensure all scoped fields are present in the request payload
+**Action:** Ensure correct previous proof is provided.
 
 ---
 
-## Format/Protocol Errors (480-486)
+### ASH_SCOPED_FIELD_MISSING — HTTP 475
 
-### ASH_TIMESTAMP_INVALID
+A required scoped field is missing from the payload (strict mode).
 
-**HTTP Status:** 482
+**Causes:** Missing field in payload, field name typo, scope policy updated.
 
-The timestamp validation failed.
-
-**Possible Causes:**
-- Timestamp outside allowed drift window
-- Invalid timestamp format
-- Client/server clock drift
-
-**Client Action:** Ensure timestamps are synchronized
+**Action:** Ensure all scoped fields are present in the request payload.
 
 ---
 
-### ASH_PROOF_MISSING
+## Format Errors (482-486)
 
-**HTTP Status:** 483
+### ASH_TIMESTAMP_INVALID — HTTP 482
 
-The request did not include a required proof value.
+Timestamp validation failed.
 
-**Possible Causes:**
-- Missing `X-ASH-Proof` header
-- Client integration error
-- Middleware misconfiguration
+**Causes:** Outside allowed drift window, invalid format, clock drift.
 
-**Client Action:** Include proof in request headers
+**Action:** Synchronize clocks, use valid Unix timestamp (seconds).
 
 ---
 
-## Format/Protocol Errors (484-486)
+### ASH_PROOF_MISSING — HTTP 483
 
-### ASH_CANONICALIZATION_ERROR
+The request did not include a required header.
 
-**HTTP Status:** 484
+**Causes:** Missing `x-ash-proof` or other required header, middleware misconfiguration.
 
-The payload could not be canonicalized deterministically.
-
-**Possible Causes:**
-- Invalid JSON syntax
-- Unsupported payload structure
-- Non-deterministic serialization
-- Character encoding issues
-
-**Client Action:** Verify payload is valid and use SDK canonicalization functions
+**Action:** Include all 5 required headers in request.
 
 ---
 
-### ASH_VALIDATION_ERROR
+### ASH_CANONICALIZATION_ERROR — HTTP 484
 
-**HTTP Status:** 485
+The payload could not be canonicalized.
 
-Input validation failure. A required input parameter is missing, empty, or malformed.
+**Causes:** Invalid JSON, unsupported structure, encoding issues.
 
-**Possible Causes:**
-- Empty or missing required parameter (nonce, context_id, binding, etc.)
-- Parameter format validation failure
-- Parameter exceeds maximum length
-
-**Client Action:** Check all required parameters are present and correctly formatted
+**Action:** Verify payload is valid and use SDK canonicalization functions.
 
 ---
 
-### ASH_MODE_VIOLATION
+### ASH_VALIDATION_ERROR — HTTP 485
 
-**HTTP Status:** 486
+Input validation failure.
 
-The request violates the security mode constraints.
+**Causes:** Empty or missing parameter, format failure, parameter exceeds max length.
 
-**Possible Causes:**
-- Strict mode requires nonce but none provided
-- Mode mismatch between client and server
-- Invalid mode value
-
-**Client Action:** Use correct security mode settings
+**Action:** Check all required parameters are present and correctly formatted.
 
 ---
 
-### ASH_UNSUPPORTED_CONTENT_TYPE
+### ASH_MODE_VIOLATION — HTTP 486
 
-**HTTP Status:** 415 Unsupported Media Type
+The request violates security mode constraints.
 
-The request content type is not supported for ASH verification.
+**Causes:** Strict mode requires nonce but none provided, mode mismatch.
 
-**Possible Causes:**
-- Content-Type header missing or invalid
-- Unsupported media type (not JSON or form-urlencoded)
-
-**Client Action:** Use supported content type (application/json or application/x-www-form-urlencoded)
+**Action:** Use correct security mode settings.
 
 ---
 
-### ASH_INTERNAL_ERROR
+## Standard HTTP Errors
 
-**HTTP Status:** 500
+### ASH_UNSUPPORTED_CONTENT_TYPE — HTTP 415
 
-An internal server error occurred during ASH processing.
+Content type not supported.
 
-**Possible Causes:**
-- Random number generation (RNG) failure
-- System time unavailable
-- Unexpected internal state
+**Causes:** Missing Content-Type, unsupported media type.
 
-**Client Action:** Retry the request; if persistent, contact server administrator
+**Action:** Use `application/json` or `application/x-www-form-urlencoded`.
 
 ---
 
-## HTTP Status Code Summary
+### ASH_INTERNAL_ERROR — HTTP 500
 
-Every ASH error code maps to a **unique** HTTP status code for unambiguous identification:
+Internal server error during ASH processing.
 
-| Error Code | HTTP Status | Category |
-|------------|-------------|----------|
+**Causes:** RNG failure, system time unavailable.
+
+**Action:** Retry; if persistent, contact server administrator.
+
+---
+
+## Summary Table
+
+| Error Code | HTTP | Category |
+|------------|------|----------|
 | `ASH_CTX_NOT_FOUND` | 450 | Context |
 | `ASH_CTX_EXPIRED` | 451 | Context |
 | `ASH_CTX_ALREADY_USED` | 452 | Context |
-| `ASH_PROOF_INVALID` | 460 | Seal |
-| `ASH_BINDING_MISMATCH` | 461 | Binding |
+| `ASH_PROOF_INVALID` | 460 | Proof |
+| `ASH_BINDING_MISMATCH` | 461 | Proof |
 | `ASH_SCOPE_MISMATCH` | 473 | Verification |
 | `ASH_CHAIN_BROKEN` | 474 | Verification |
 | `ASH_SCOPED_FIELD_MISSING` | 475 | Verification |
@@ -301,117 +208,63 @@ Every ASH error code maps to a **unique** HTTP status code for unambiguous ident
 
 ---
 
-## Language-Specific Implementation Guidelines
-
-### Error Code Constants
-
-Each SDK MUST define constants/enums for all error codes:
+## Implementation
 
 **Rust:**
 ```rust
 pub enum AshErrorCode {
-    CtxNotFound,           // HTTP 450
-    CtxExpired,            // HTTP 451
-    CtxAlreadyUsed,        // HTTP 452
-    ProofInvalid,          // HTTP 460
-    BindingMismatch,       // HTTP 461
-    ScopeMismatch,         // HTTP 473
-    ChainBroken,           // HTTP 474
-    TimestampInvalid,      // HTTP 482
-    ProofMissing,          // HTTP 483
-    ScopedFieldMissing,    // HTTP 475
-    CanonicalizationError, // HTTP 484
-    ValidationError,       // HTTP 485
-    ModeViolation,         // HTTP 486
-    UnsupportedContentType,// HTTP 415
-    InternalError,         // HTTP 500
+    CtxNotFound,           // 450
+    CtxExpired,            // 451
+    CtxAlreadyUsed,        // 452
+    ProofInvalid,          // 460
+    BindingMismatch,       // 461
+    ScopeMismatch,         // 473
+    ChainBroken,           // 474
+    ScopedFieldMissing,    // 475
+    TimestampInvalid,      // 482
+    ProofMissing,          // 483
+    CanonicalizationError, // 484
+    ValidationError,       // 485
+    ModeViolation,         // 486
+    UnsupportedContentType,// 415
+    InternalError,         // 500
 }
 ```
 
-**TypeScript/JavaScript:**
+**TypeScript:**
 ```typescript
-type AshErrorCode =
-  | 'ASH_CTX_NOT_FOUND'           // HTTP 450
-  | 'ASH_CTX_EXPIRED'             // HTTP 451
-  | 'ASH_CTX_ALREADY_USED'        // HTTP 452
-  | 'ASH_PROOF_INVALID'           // HTTP 460
-  | 'ASH_BINDING_MISMATCH'        // HTTP 461
-  | 'ASH_SCOPE_MISMATCH'          // HTTP 473
-  | 'ASH_CHAIN_BROKEN'            // HTTP 474
-  | 'ASH_TIMESTAMP_INVALID'       // HTTP 482
-  | 'ASH_PROOF_MISSING'           // HTTP 483
-  | 'ASH_SCOPED_FIELD_MISSING'   // HTTP 475
-  | 'ASH_CANONICALIZATION_ERROR'  // HTTP 484
-  | 'ASH_VALIDATION_ERROR'        // HTTP 485
-  | 'ASH_MODE_VIOLATION'          // HTTP 486
-  | 'ASH_UNSUPPORTED_CONTENT_TYPE'// HTTP 415
-  | 'ASH_INTERNAL_ERROR';         // HTTP 500
-```
-
----
-
-## Error Response Format
-
-SDKs SHOULD return errors in this JSON format:
-
-```json
-{
-  "error": {
-    "code": "ASH_CTX_EXPIRED",
-    "message": "Context has expired",
-    "details": {
-      "contextId": "ash_abc123",
-      "expiredAt": "2026-01-28T12:00:00Z"
-    }
-  }
+enum AshErrorCode {
+    CTX_NOT_FOUND = 'ASH_CTX_NOT_FOUND',           // 450
+    CTX_EXPIRED = 'ASH_CTX_EXPIRED',               // 451
+    CTX_ALREADY_USED = 'ASH_CTX_ALREADY_USED',     // 452
+    PROOF_INVALID = 'ASH_PROOF_INVALID',            // 460
+    BINDING_MISMATCH = 'ASH_BINDING_MISMATCH',      // 461
+    SCOPE_MISMATCH = 'ASH_SCOPE_MISMATCH',          // 473
+    CHAIN_BROKEN = 'ASH_CHAIN_BROKEN',              // 474
+    SCOPED_FIELD_MISSING = 'ASH_SCOPED_FIELD_MISSING', // 475
+    TIMESTAMP_INVALID = 'ASH_TIMESTAMP_INVALID',    // 482
+    PROOF_MISSING = 'ASH_PROOF_MISSING',            // 483
+    CANONICALIZATION_ERROR = 'ASH_CANONICALIZATION_ERROR', // 484
+    VALIDATION_ERROR = 'ASH_VALIDATION_ERROR',      // 485
+    MODE_VIOLATION = 'ASH_MODE_VIOLATION',           // 486
+    UNSUPPORTED_CONTENT_TYPE = 'ASH_UNSUPPORTED_CONTENT_TYPE', // 415
+    INTERNAL_ERROR = 'ASH_INTERNAL_ERROR',           // 500
 }
 ```
 
-**Fields:**
-- `code` (required): One of the standard error codes
-- `message` (required): Human-readable error description
-- `details` (optional): Additional context-specific information
+---
+
+## Security Notes
+
+- **Server-side logging**: Log detailed error info (contextId, binding, timestamps)
+- **Client-facing responses**: Return only error code and generic message
+- **Never expose**: Nonces, secrets, or cryptographic details in error responses
+- **Timing**: Error responses should be returned in constant time
 
 ---
 
-## Security Considerations
+## License
 
-### Error Message Disclosure
+Apache License 2.0
 
-- **Server-side logging**: Log detailed error information including contextId, binding, timestamps
-- **Client-facing responses**: Return only the error code and generic message
-- **Never expose**: Internal state, nonces, or cryptographic details in error responses
-
-### Timing Attack Prevention
-
-Error responses SHOULD be returned in constant time to prevent timing-based information disclosure about:
-- Whether a contextId exists
-- How close a proof was to being valid
-- The stage at which verification failed
-
----
-
-## Migration Notes
-
-### From Legacy Error Codes
-
-If your SDK uses different error codes, map them to the standard codes:
-
-| Legacy (Node.js) | Standard |
-|------------------|----------|
-| `MISSING_CONTEXT_ID` | `ASH_CTX_NOT_FOUND` |
-| `CONTEXT_USED` | `ASH_CTX_ALREADY_USED` |
-| `INVALID_CONTEXT` | `ASH_CTX_NOT_FOUND` |
-| `PROOF_MISMATCH` | `ASH_PROOF_INVALID` |
-
----
-
-## Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2026-02-07 | Unique HTTP status codes for all errors; initial stable release |
-
----
-
-**Document maintained by:** 3maem Co. | شركة عمائم
+See [LICENSE](../../LICENSE) for full terms.

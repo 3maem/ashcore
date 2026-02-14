@@ -93,7 +93,7 @@ describe('Cross-cutting: Debug ↔ CLI inspect consistency', () => {
     const buildResult = ashBuildRequest(basicInput());
     const debugVerify = ashVerifyRequestDebug({
       headers: {
-        'x-ash-timestamp': buildResult.timestamp,
+        'x-ash-ts': buildResult.timestamp,
         'x-ash-nonce': buildResult.nonce,
         'x-ash-body-hash': buildResult.bodyHash,
         'x-ash-proof': buildResult.proof,
@@ -205,7 +205,7 @@ describe('Cross-cutting: CLI build → SDK verify', () => {
 
     const result = ashVerifyRequest({
       headers: {
-        'x-ash-timestamp': build.timestamp,
+        'x-ash-ts': build.timestamp,
         'x-ash-nonce': build.nonce,
         'x-ash-body-hash': build.bodyHash,
         'x-ash-proof': build.proof,
@@ -235,7 +235,7 @@ describe('Cross-cutting: CLI build → SDK verify', () => {
 
     const result = ashVerifyRequest({
       headers: {
-        'x-ash-timestamp': build.timestamp,
+        'x-ash-ts': build.timestamp,
         'x-ash-nonce': build.nonce,
         'x-ash-body-hash': build.bodyHash,
         'x-ash-proof': build.proof,
@@ -399,7 +399,7 @@ describe('Cross-cutting: Regression — Phase 3 doesnt break Layer 1/2', () => {
     const buildResult = ashBuildRequest(basicInput());
     const verifyResult = ashVerifyRequest({
       headers: {
-        'x-ash-timestamp': buildResult.timestamp,
+        'x-ash-ts': buildResult.timestamp,
         'x-ash-nonce': buildResult.nonce,
         'x-ash-body-hash': buildResult.bodyHash,
         'x-ash-proof': buildResult.proof,
@@ -422,7 +422,7 @@ describe('Cross-cutting: Regression — Phase 3 doesnt break Layer 1/2', () => {
 
     const verifyResult = ashVerifyRequest({
       headers: {
-        'x-ash-timestamp': result.timestamp,
+        'x-ash-ts': result.timestamp,
         'x-ash-nonce': result.nonce,
         'x-ash-body-hash': result.bodyHash,
         'x-ash-proof': result.proof,
@@ -450,7 +450,7 @@ describe('Cross-cutting: Regression — Phase 3 doesnt break Layer 1/2', () => {
 
     const verifyResult = ashVerifyRequest({
       headers: {
-        'x-ash-timestamp': result.timestamp,
+        'x-ash-ts': result.timestamp,
         'x-ash-nonce': result.nonce,
         'x-ash-body-hash': result.bodyHash,
         'x-ash-proof': result.proof,
@@ -486,7 +486,7 @@ describe('Cross-cutting: Regression — Phase 3 doesnt break Layer 1/2', () => {
     const buildResult = ashBuildRequest(basicInput());
     const verifyInput = {
       headers: {
-        'x-ash-timestamp': buildResult.timestamp,
+        'x-ash-ts': buildResult.timestamp,
         'x-ash-nonce': buildResult.nonce,
         'x-ash-body-hash': buildResult.bodyHash,
         'x-ash-proof': buildResult.proof,
@@ -589,7 +589,7 @@ describe('Cross-cutting: Edge cases', () => {
 
     const result = ashVerifyRequest({
       headers: {
-        'x-ash-timestamp': build.timestamp,
+        'x-ash-ts': build.timestamp,
         'x-ash-nonce': build.nonce,
         'x-ash-body-hash': build.bodyHash,
         'x-ash-proof': build.proof,

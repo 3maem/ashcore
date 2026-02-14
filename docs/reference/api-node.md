@@ -1,7 +1,7 @@
-# ASH Node.js SDK API Reference
+# ashcore Node.js SDK — API Reference
 
-**Version:** 1.0.0
 **Package:** `@3maem/ash-node-sdk`
+**Version:** 1.2.0
 
 ## Installation
 
@@ -9,59 +9,20 @@
 npm install @3maem/ash-node-sdk
 ```
 
-**Requirements:** Node.js 18.0.0 or later
-
----
-
-## Exports
-
-```typescript
-import {
-  ashBuildRequest,
-  ashVerifyRequest,
-  ashExpressMiddleware,
-  ashFastifyPlugin,
-  AshMemoryStore,
-  ashDebugTrace,
-} from '@3maem/ash-node-sdk';
-```
+**Requirements:** Node.js 18.0.0 or later. Zero runtime dependencies.
 
 ---
 
 ## Constants
 
-### Version Constants
-
 ```typescript
-const ASH_SDK_VERSION = "1.0.0";
-const ASH_VERSION_PREFIX = "ASHv2.1";
+import {
+  ASH_SDK_VERSION,          // '1.0.0'
+  ASH_VERSION_PREFIX,       // 'ASHv2.1'
+  DEFAULT_MAX_TIMESTAMP_AGE_SECONDS, // 300
+  DEFAULT_CLOCK_SKEW_SECONDS,        // 30
+} from '@3maem/ash-node-sdk';
 ```
-
-### Security Modes
-
-```typescript
-type AshMode = 'minimal' | 'balanced' | 'strict';
-```
-
-| Mode | Description |
-|------|-------------|
-| `minimal` | Basic integrity checking |
-| `balanced` | Recommended for most applications |
-| `strict` | Maximum security with nonce requirement |
-
-### Error Codes
-
-| Code | HTTP | Description |
-|------|------|-------------|
-| `ASH_CTX_NOT_FOUND` | 450 | Context not found |
-| `ASH_CTX_EXPIRED` | 451 | Context expired |
-| `ASH_CTX_ALREADY_USED` | 452 | Replay detected |
-| `ASH_PROOF_INVALID` | 460 | Proof verification failed |
-| `ASH_BINDING_MISMATCH` | 461 | Binding mismatch |
-| `ASH_SCOPE_MISMATCH` | 473 | Scope mismatch |
-| `ASH_CHAIN_BROKEN` | 474 | Chain broken |
-| `ASH_TIMESTAMP_INVALID` | 482 | Timestamp invalid |
-| `ASH_PROOF_MISSING` | 483 | Proof missing |
 
 ---
 
@@ -73,12 +34,30 @@ type AshMode = 'minimal' | 'balanced' | 'strict';
 function ashCanonicalizeJson(input: string): string
 ```
 
-Canonicalizes JSON to deterministic form per RFC 8785 (JCS).
+Canonicalizes a JSON string per RFC 8785 (JCS). Keys sorted by UTF-16 code unit order, whitespace removed, ES6 float formatting.
 
 ```typescript
+import { ashCanonicalizeJson } from '@3maem/ash-node-sdk';
+
 const canonical = ashCanonicalizeJson('{"z":1,"a":2}');
-// Result: '{"a":2,"z":1}'
+// '{"a":2,"z":1}'
 ```
+
+### ashCanonicalizeJsonValue
+
+```typescript
+function ashCanonicalizeJsonValue(value: unknown): string
+```
+
+Canonicalizes a parsed JavaScript value (object, array, primitive) to canonical JSON string.
+
+### ashCanonicalizeQuery
+
+```typescript
+function ashCanonicalizeQuery(query: string): string
+```
+
+Canonicalizes a URL query string. Parameters sorted by key (byte order), percent-encoded, `+` treated as literal plus (not space).
 
 ### ashCanonicalizeUrlencoded
 
@@ -86,55 +65,184 @@ const canonical = ashCanonicalizeJson('{"z":1,"a":2}');
 function ashCanonicalizeUrlencoded(input: string): string
 ```
 
-Canonicalizes URL-encoded form data.
-
-```typescript
-const canonical = ashCanonicalizeUrlencoded('z=1&a=2');
-// Result: 'a=2&z=1'
-```
+Canonicalizes `application/x-www-form-urlencoded` form data.
 
 ---
 
-## Proof Generation
+## Binding
+
+### ashNormalizeBinding
+
+```typescript
+function ashNormalizeBinding(method: string, path: string, query: string): string
+```
+
+Normalizes a binding string to canonical form: `METHOD|PATH|CANONICAL_QUERY`.
+
+```typescript
+import { ashNormalizeBinding } from '@3maem/ash-node-sdk';
+
+const binding = ashNormalizeBinding('post', '/api//test/', '');
+// 'POST|/api/test|'
+
+const withQuery = ashNormalizeBinding('GET', '/api/users', 'page=1&sort=name');
+// 'GET|/api/users|page=1&sort=name'
+```
+
+### ashNormalizeBindingFromUrl
+
+```typescript
+function ashNormalizeBindingFromUrl(method: string, fullPath: string): string
+```
+
+Convenience wrapper that splits a full URL path (with query string) and delegates to `ashNormalizeBinding`.
+
+---
+
+## Hashing
+
+| Function | Description |
+|----------|-------------|
+| `ashHashBody(canonicalBody)` | SHA-256 hash of canonical body (lowercase hex) |
+| `ashHashProof(proof)` | SHA-256 of proof hex string (for chaining) |
+| `ashHashScope(scope)` | SHA-256 of sorted, deduplicated scope fields joined by U+001F |
+
+---
+
+## Proof — Basic
+
+### ashDeriveClientSecret
+
+```typescript
+function ashDeriveClientSecret(nonce: string, contextId: string, binding: string): string
+```
+
+Derives client secret: `HMAC-SHA256(key=nonce_lowercase_ascii, data=contextId|binding)`.
 
 ### ashBuildProof
 
 ```typescript
 function ashBuildProof(
-  mode: AshMode,
-  binding: string,
-  contextId: string,
-  nonce: string | null,
-  canonicalPayload: string
-): string
-```
-
-Builds a cryptographic proof for request integrity.
-
-### ashBuildProofHmac
-
-```typescript
-function ashBuildProofHmac(
   clientSecret: string,
-  bodyHash: string,
   timestamp: string,
-  binding: string
+  binding: string,
+  bodyHash: string,
 ): string
 ```
 
-Builds an HMAC-SHA256 proof (v2.1 format).
-
----
-
-## Proof Verification
+Builds HMAC-SHA256 proof: `HMAC-SHA256(key=clientSecret, data=timestamp|binding|bodyHash)`.
 
 ### ashVerifyProof
 
 ```typescript
-function ashVerifyProof(expected: string, actual: string): boolean
+function ashVerifyProof(
+  nonce: string,
+  contextId: string,
+  binding: string,
+  timestamp: string,
+  bodyHash: string,
+  clientProof: string,
+): boolean
 ```
 
-Verifies two proofs match using constant-time comparison.
+Re-derives secret, rebuilds proof, constant-time compares. Returns `true` if valid.
+
+### ashVerifyProofWithFreshness
+
+```typescript
+function ashVerifyProofWithFreshness(
+  nonce: string,
+  contextId: string,
+  binding: string,
+  timestamp: string,
+  bodyHash: string,
+  clientProof: string,
+  maxAgeSeconds: number,
+  clockSkewSeconds: number,
+): boolean
+```
+
+Same as `ashVerifyProof` but also validates timestamp freshness.
+
+---
+
+## Proof — Scoped
+
+### ashExtractScopedFields / ashExtractScopedFieldsStrict
+
+```typescript
+function ashExtractScopedFields(payload: unknown, scope: string[]): unknown
+function ashExtractScopedFieldsStrict(payload: unknown, scope: string[]): unknown
+```
+
+Extract scoped fields from a parsed payload. Lenient mode ignores missing fields; strict mode throws `ASH_SCOPED_FIELD_MISSING`.
+
+### ashBuildProofScoped
+
+```typescript
+function ashBuildProofScoped(
+  clientSecret: string,
+  timestamp: string,
+  binding: string,
+  payload: string,
+  scope: string[],
+): ScopedProofResult  // { proof: string, scopeHash: string }
+```
+
+### ashVerifyProofScoped
+
+```typescript
+function ashVerifyProofScoped(
+  nonce: string,
+  contextId: string,
+  binding: string,
+  timestamp: string,
+  payload: string,
+  scope: string[],
+  scopeHash: string,
+  clientProof: string,
+): boolean
+```
+
+---
+
+## Proof — Unified
+
+### ashBuildProofUnified
+
+```typescript
+function ashBuildProofUnified(
+  clientSecret: string,
+  timestamp: string,
+  binding: string,
+  payload: string,
+  scope: string[],
+  previousProof?: string | null,
+): UnifiedProofResult  // { proof: string, scopeHash: string, chainHash: string }
+```
+
+Supports optional scoping and chaining in a single call.
+
+### ashVerifyProofUnified
+
+```typescript
+function ashVerifyProofUnified(
+  nonce: string,
+  contextId: string,
+  binding: string,
+  timestamp: string,
+  payload: string,
+  clientProof: string,
+  scope: string[],
+  scopeHash: string,
+  previousProof: string | null | undefined,
+  chainHash: string,
+): boolean
+```
+
+---
+
+## Comparison
 
 ### ashTimingSafeEqual
 
@@ -146,31 +254,14 @@ Constant-time string comparison to prevent timing attacks.
 
 ---
 
-## Binding
-
-### ashNormalizeBinding
-
-```typescript
-function ashNormalizeBinding(method: string, path: string): string
-```
-
-Normalizes a binding string to canonical form.
-
-```typescript
-const binding = ashNormalizeBinding('post', '/api//test/');
-// Result: 'POST /api/test'
-```
-
----
-
-## Cryptographic Utilities
+## Validation
 
 | Function | Description |
 |----------|-------------|
-| `ashGenerateNonce(bytes)` | Generate cryptographic nonce |
-| `ashGenerateContextId()` | Generate unique context ID |
-| `ashDeriveClientSecret(nonce, contextId, binding)` | Derive client secret |
-| `ashHashBody(body)` | SHA-256 hash of body |
+| `ashValidateNonce(nonce)` | Validates hex format, 32-512 chars |
+| `ashValidateTimestampFormat(ts)` | Validates digits-only, no leading zeros |
+| `ashValidateTimestamp(ts, maxAge, skew)` | Format + freshness check |
+| `ashValidateHash(hash, label)` | Validates 64-char hex SHA-256 |
 
 ---
 
@@ -179,18 +270,93 @@ const binding = ashNormalizeBinding('post', '/api//test/');
 ### ashBuildRequest
 
 ```typescript
-function ashBuildRequest(input: AshBuildRequestInput): AshBuildRequestResult
+function ashBuildRequest(input: BuildRequestInput): BuildRequestResult
 ```
 
-One-call orchestrator that canonicalizes, hashes, derives the secret, and builds the proof + headers.
+7-step orchestrator: validate nonce, validate/generate timestamp, normalize binding, hash body, derive secret, build proof, return result with `destroy()`.
+
+```typescript
+interface BuildRequestInput {
+  nonce: string;
+  contextId: string;
+  method: string;
+  path: string;
+  rawQuery?: string;
+  body?: string;
+  timestamp?: string;
+  scope?: string[];
+  previousProof?: string;
+}
+
+interface BuildRequestResult {
+  proof: string;
+  bodyHash: string;
+  binding: string;
+  timestamp: string;
+  nonce: string;
+  scopeHash?: string;
+  chainHash?: string;
+  destroy(): void;
+}
+```
 
 ### ashVerifyRequest
 
 ```typescript
-function ashVerifyRequest(input: AshVerifyRequestInput): AshVerifyResult
+function ashVerifyRequest(input: VerifyRequestInput): VerifyResult
 ```
 
-One-call orchestrator that extracts headers, looks up context, and verifies the proof.
+9-step orchestrator: extract headers, validate timestamp, validate nonce, normalize binding, hash body, compare body hash, derive secret, build proof, compare proof.
+
+```typescript
+interface VerifyRequestInput {
+  headers: Record<string, string | string[] | undefined>;
+  method: string;
+  path: string;
+  rawQuery?: string;
+  body?: string;
+  nonce: string;
+  contextId: string;
+  scope?: string[];
+  previousProof?: string;
+  maxAgeSeconds?: number;
+  clockSkewSeconds?: number;
+}
+
+interface VerifyResult {
+  ok: boolean;
+  error?: AshError;
+  meta?: {
+    mode: 'basic' | 'scoped' | 'unified';
+    timestamp: number;
+    binding: string;
+  };
+}
+```
+
+---
+
+## Headers
+
+### ashExtractHeaders
+
+```typescript
+function ashExtractHeaders(
+  headers: Record<string, string | string[] | undefined>,
+): AshHeaderBundle
+```
+
+Case-insensitive extraction and validation of all 5 required ASH headers. Throws `ASH_PROOF_MISSING` if any header is absent.
+
+### Header Constants
+
+| Constant | Value |
+|----------|-------|
+| `X_ASH_TIMESTAMP` | `x-ash-ts` |
+| `X_ASH_NONCE` | `x-ash-nonce` |
+| `X_ASH_BODY_HASH` | `x-ash-body-hash` |
+| `X_ASH_PROOF` | `x-ash-proof` |
+| `X_ASH_CONTEXT_ID` | `x-ash-context-id` |
 
 ---
 
@@ -202,7 +368,6 @@ In-memory store for development and testing.
 
 ```typescript
 import { AshMemoryStore } from '@3maem/ash-node-sdk';
-
 const store = new AshMemoryStore();
 ```
 
@@ -212,11 +377,21 @@ Production-ready store with atomic operations.
 
 ```typescript
 import { AshRedisStore } from '@3maem/ash-node-sdk';
-import Redis from 'ioredis';
-
-const redis = new Redis('redis://localhost:6379');
-const store = new AshRedisStore(redis);
+const store = new AshRedisStore(redisClient);
 ```
+
+---
+
+## Scope Policy
+
+### AshScopePolicyRegistry
+
+```typescript
+import { AshScopePolicyRegistry } from '@3maem/ash-node-sdk';
+const registry = new AshScopePolicyRegistry();
+```
+
+Registers scope policies per endpoint with exact, param, and wildcard pattern matching.
 
 ---
 
@@ -257,39 +432,39 @@ fastify.register(ashFastifyPlugin, {
 ## Debug Trace
 
 ```typescript
-import { ashDebugTrace } from '@3maem/ash-node-sdk';
+import {
+  ashBuildRequestDebug,
+  ashVerifyRequestDebug,
+  ashFormatTrace,
+} from '@3maem/ash-node-sdk';
 
-const trace = ashDebugTrace(buildResult);
-console.log(trace);
+const result = ashBuildRequestDebug(input);
+console.log(ashFormatTrace(result.trace));
 ```
 
----
-
-## HTTP Headers
-
-| Header | Description |
-|--------|-------------|
-| `X-ASH-Context-ID` | Context identifier |
-| `X-ASH-Proof` | Cryptographic proof |
-| `X-ASH-Mode` | Security mode |
-| `X-ASH-Timestamp` | Request timestamp |
-| `X-ASH-Scope` | Comma-separated scoped fields |
-| `X-ASH-Scope-Hash` | Hash of scoped fields |
-| `X-ASH-Chain-Hash` | Hash of previous proof |
+Step-by-step tracing with timing, inputs, and outputs. Sensitive values (clientSecret) are REDACTED.
 
 ---
 
-## Input Validation
+## Errors
+
+```typescript
+import { AshError, AshErrorCode } from '@3maem/ash-node-sdk';
+```
+
+See [Error Codes Reference](error-codes.md) for the full list.
+
+---
+
+## Input Validation Rules
 
 | Parameter | Rule |
 |-----------|------|
-| `nonce` | Minimum 32 hex characters |
-| `nonce` | Maximum 128 characters |
-| `nonce` | Hexadecimal only (0-9, a-f, A-F) |
-| `contextId` | Cannot be empty |
-| `contextId` | Maximum 256 characters |
-| `contextId` | Alphanumeric, underscore, hyphen, dot only |
-| `binding` | Maximum 8192 bytes |
+| `nonce` | 32-512 hex characters |
+| `contextId` | 1-256 chars, `[A-Za-z0-9_\-.]` only |
+| `binding` | Max 8,192 bytes |
+| `timestamp` | Digits only, no leading zeros |
+| `bodyHash` | Exactly 64 hex chars (SHA-256) |
 
 ---
 

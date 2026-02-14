@@ -1,14 +1,12 @@
-# ASH Middleware Reference
+# ashcore Middleware Reference
 
 **Version:** 1.0.0
-
-This document provides an overview of all available ASH middleware implementations.
 
 ---
 
 ## Overview
 
-ASH middleware integrates with web frameworks to automatically verify request integrity. Each middleware:
+ashcore middleware integrates with web frameworks to automatically verify request integrity. Each middleware:
 
 - Extracts ASH headers from incoming requests
 - Verifies cryptographic proofs against stored contexts
@@ -26,11 +24,9 @@ ASH middleware integrates with web frameworks to automatically verify request in
 
 ---
 
-## Node.js Middleware
+## Express Middleware
 
-### Express
-
-```javascript
+```typescript
 import { ashExpressMiddleware, AshMemoryStore } from '@3maem/ash-node-sdk';
 
 const store = new AshMemoryStore();
@@ -45,9 +41,9 @@ app.post(
 );
 ```
 
-### Fastify
+## Fastify Plugin
 
-```javascript
+```typescript
 import { ashFastifyPlugin, AshMemoryStore } from '@3maem/ash-node-sdk';
 
 const store = new AshMemoryStore();
@@ -62,38 +58,38 @@ See [Node.js API Reference](api-node.md) for full documentation.
 
 ---
 
-## Common Configuration Options
+## Configuration Options
 
-All middleware implementations support these common options:
-
-| Option | Description |
-|--------|-------------|
-| `store` | Context store instance (Memory or Redis) |
-| `protectedPaths` | URL patterns to protect |
-| `skip` | Function to conditionally skip verification |
-| `onError` | Custom error handler |
+```typescript
+interface AshMiddlewareOptions {
+  store: AshContextStore;
+  scopeRegistry?: AshScopePolicyRegistry;
+  maxAgeSeconds?: number;       // default: 300
+  clockSkewSeconds?: number;    // default: 30
+  onError?: (error: AshError, req, res) => void;
+  extractBody?: (req) => string | undefined;
+}
+```
 
 ---
 
-## HTTP Headers
+## Required HTTP Headers
 
-All middleware implementations expect these headers:
+All middleware implementations expect these 5 headers (case-insensitive):
 
 | Header | Required | Description |
 |--------|----------|-------------|
-| `X-ASH-Context-ID` | Yes | Context identifier |
-| `X-ASH-Proof` | Yes | Cryptographic proof |
-| `X-ASH-Timestamp` | Yes | Request timestamp (Unix ms) |
-| `X-ASH-Mode` | No | Security mode |
-| `X-ASH-Scope` | No | Scoped fields (v2.2+) |
-| `X-ASH-Scope-Hash` | No | Scope hash (v2.2+) |
-| `X-ASH-Chain-Hash` | No | Chain hash (v2.3+) |
+| `x-ash-ts` | Yes | Unix timestamp (seconds) |
+| `x-ash-nonce` | Yes | Cryptographic nonce (hex) |
+| `x-ash-body-hash` | Yes | SHA-256 hash of canonical body |
+| `x-ash-proof` | Yes | HMAC-SHA256 proof |
+| `x-ash-context-id` | Yes | Context identifier |
 
 ---
 
 ## Error Responses
 
-When verification fails, middleware returns these error codes:
+When verification fails, middleware returns:
 
 | Code | HTTP | Description |
 |------|------|-------------|
@@ -102,9 +98,9 @@ When verification fails, middleware returns these error codes:
 | `ASH_CTX_ALREADY_USED` | 452 | Replay detected |
 | `ASH_PROOF_INVALID` | 460 | Proof verification failed |
 | `ASH_BINDING_MISMATCH` | 461 | Binding mismatch |
-| `ASH_PROOF_MISSING` | 483 | Proof header missing |
+| `ASH_PROOF_MISSING` | 483 | Required header missing |
 
-See [Error Codes Reference](error-codes.md) for complete error code documentation.
+See [Error Codes Reference](error-codes.md) for the complete list.
 
 ---
 

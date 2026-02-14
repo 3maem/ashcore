@@ -1568,7 +1568,7 @@ describe('Section 3: Barrel Export & Package Correctness', () => {
   describe('SA-PKG-002: All Layer 2 exports present', () => {
     it('exports header constants', async () => {
       const mod = await import('../../../src/index.js');
-      expect(mod.X_ASH_TIMESTAMP).toBe('x-ash-timestamp');
+      expect(mod.X_ASH_TIMESTAMP).toBe('x-ash-ts');
       expect(mod.X_ASH_NONCE).toBe('x-ash-nonce');
       expect(mod.X_ASH_BODY_HASH).toBe('x-ash-body-hash');
       expect(mod.X_ASH_PROOF).toBe('x-ash-proof');

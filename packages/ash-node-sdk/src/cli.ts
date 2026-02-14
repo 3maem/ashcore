@@ -203,7 +203,7 @@ Verify an ASH proof for a request.`);
 
   try {
     const headers: Record<string, string> = {
-      'x-ash-timestamp': values.timestamp!,
+      'x-ash-ts': values.timestamp!,
       'x-ash-nonce': values.nonce!,
       'x-ash-body-hash': values['body-hash']!,
       'x-ash-proof': values.proof!,
@@ -474,7 +474,7 @@ Show debug trace for build or verify operations.`);
 
     try {
       const headers: Record<string, string> = {
-        'x-ash-timestamp': values.timestamp!,
+        'x-ash-ts': values.timestamp!,
         'x-ash-nonce': values.nonce!,
         'x-ash-body-hash': values['body-hash']!,
         'x-ash-proof': values.proof!,

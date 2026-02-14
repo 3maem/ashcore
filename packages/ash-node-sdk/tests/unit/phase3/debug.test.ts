@@ -35,7 +35,7 @@ function basicBuildInput(overrides?: Partial<BuildRequestInput>): BuildRequestIn
 function makeVerifyInput(buildResult: ReturnType<typeof ashBuildRequest>, overrides?: Partial<VerifyRequestInput>): VerifyRequestInput {
   return {
     headers: {
-      'x-ash-timestamp': buildResult.timestamp,
+      'x-ash-ts': buildResult.timestamp,
       'x-ash-nonce': buildResult.nonce,
       'x-ash-body-hash': buildResult.bodyHash,
       'x-ash-proof': buildResult.proof,
@@ -111,7 +111,7 @@ describe('PT: Debug trace — secret protection', () => {
   it('PT-DBG-006: tampered proof detected at verify_proof step', () => {
     const buildResult = ashBuildRequest(basicBuildInput());
     const tamperedHeaders = {
-      'x-ash-timestamp': buildResult.timestamp,
+      'x-ash-ts': buildResult.timestamp,
       'x-ash-nonce': buildResult.nonce,
       'x-ash-body-hash': buildResult.bodyHash,
       'x-ash-proof': 'a'.repeat(64),
@@ -127,7 +127,7 @@ describe('PT: Debug trace — secret protection', () => {
   it('PT-DBG-007: tampered timestamp format produces error trace', () => {
     const buildResult = ashBuildRequest(basicBuildInput());
     const tamperedHeaders = {
-      'x-ash-timestamp': 'notdigits',
+      'x-ash-ts': 'notdigits',
       'x-ash-nonce': buildResult.nonce,
       'x-ash-body-hash': buildResult.bodyHash,
       'x-ash-proof': buildResult.proof,

@@ -39,7 +39,7 @@ const result = ashBuildRequest({
 });
 
 // Send request with ASH headers:
-// x-ash-timestamp, x-ash-nonce, x-ash-body-hash, x-ash-proof, x-ash-context-id
+// x-ash-ts, x-ash-nonce, x-ash-body-hash, x-ash-proof, x-ash-context-id
 
 result.destroy(); // Zero sensitive data when done
 ```
@@ -98,7 +98,7 @@ fastify.get('/api/users', async (request) => {
       │     → proof, bodyHash, timestamp     │
       │                                      │
       │  3. GET /api/x                       │
-      │     x-ash-timestamp: ...             │
+      │     x-ash-ts: ...             │
       │     x-ash-nonce: ...                 │
       │     x-ash-body-hash: ...             │
       │     x-ash-proof: ...                 │
@@ -385,7 +385,7 @@ Sensitive values (client secrets, full proofs) are always REDACTED in trace outp
 
 ```ts
 import {
-  X_ASH_TIMESTAMP,    // 'x-ash-timestamp'
+  X_ASH_TIMESTAMP,    // 'x-ash-ts'
   X_ASH_NONCE,        // 'x-ash-nonce'
   X_ASH_BODY_HASH,    // 'x-ash-body-hash'
   X_ASH_PROOF,        // 'x-ash-proof'

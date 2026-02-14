@@ -3,7 +3,7 @@ import { AshError } from './errors.js';
 
 // ── Header Name Constants ──────────────────────────────────────────
 
-export const X_ASH_TIMESTAMP = 'x-ash-timestamp';
+export const X_ASH_TIMESTAMP = 'x-ash-ts';
 export const X_ASH_NONCE = 'x-ash-nonce';
 export const X_ASH_BODY_HASH = 'x-ash-body-hash';
 export const X_ASH_PROOF = 'x-ash-proof';

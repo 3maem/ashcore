@@ -326,7 +326,7 @@ describe('FUZZ: Verify request — edge cases', () => {
 
     const result = ashVerifyRequest({
       headers: {
-        'X-ASH-TIMESTAMP': ts,
+        'X-ASH-TS': ts,
         'X-ASH-NONCE': NONCE,
         'X-ASH-BODY-HASH': buildResult.bodyHash,
         'X-ASH-PROOF': buildResult.proof,

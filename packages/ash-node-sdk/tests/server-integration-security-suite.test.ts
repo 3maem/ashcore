@@ -315,7 +315,7 @@ describe('API Quality (AQ)', () => {
   describe('AQ-002: Header Case Insensitivity', () => {
     it('should handle lowercase header names', () => {
       const headers: Record<string, string> = {
-        'x-ash-timestamp': '1234567890',
+        'x-ash-ts': '1234567890',
         'x-ash-nonce': randomHex(32),
         'x-ash-body-hash': randomHex(64),
         'x-ash-proof': randomHex(64),
@@ -326,7 +326,7 @@ describe('API Quality (AQ)', () => {
 
     it('should handle mixed case header names', () => {
       const headers: Record<string, string> = {
-        'X-Ash-Timestamp': '1234567890',
+        'X-Ash-Ts': '1234567890',
         'X-ASH-Nonce': randomHex(32),
         'x-ash-BODY-hash': randomHex(64),
         'X-ash-proof': randomHex(64),

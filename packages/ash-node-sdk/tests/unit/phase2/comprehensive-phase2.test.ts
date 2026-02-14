@@ -170,8 +170,8 @@ describe('Comprehensive: Headers — Header Injection & Smuggling', () => {
   // PT: Header smuggling — duplicate headers with different cases
   it('PT-HDR-SMUGGLE-001: first matching header wins in case-insensitive scan', () => {
     const h: Record<string, string> = {
-      'x-ash-timestamp': '1700000000',
-      'X-ASH-TIMESTAMP': '9999999999',
+      'x-ash-ts': '1700000000',
+      'X-ASH-TS': '9999999999',
       [X_ASH_NONCE]: NONCE,
       [X_ASH_BODY_HASH]: 'a'.repeat(64),
       [X_ASH_PROOF]: 'b'.repeat(64),

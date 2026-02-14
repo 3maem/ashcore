@@ -36,7 +36,7 @@ function validHeaders(): Record<string, string> {
 
 describe('SA: Header constants', () => {
   it('SA-HDR-001: header names are lowercase kebab-case', () => {
-    expect(X_ASH_TIMESTAMP).toBe('x-ash-timestamp');
+    expect(X_ASH_TIMESTAMP).toBe('x-ash-ts');
     expect(X_ASH_NONCE).toBe('x-ash-nonce');
     expect(X_ASH_BODY_HASH).toBe('x-ash-body-hash');
     expect(X_ASH_PROOF).toBe('x-ash-proof');
@@ -63,7 +63,7 @@ describe('AQ: Header extraction — happy path', () => {
 
   it('AQ-HDR-002: case-insensitive lookup (uppercase)', () => {
     const headers = {
-      'X-ASH-TIMESTAMP': VALID_TS,
+      'X-ASH-TS': VALID_TS,
       'X-ASH-NONCE': VALID_NONCE,
       'X-ASH-BODY-HASH': VALID_BODY_HASH,
       'X-ASH-PROOF': VALID_PROOF,
@@ -76,7 +76,7 @@ describe('AQ: Header extraction — happy path', () => {
 
   it('AQ-HDR-003: case-insensitive lookup (mixed case)', () => {
     const headers = {
-      'X-Ash-Timestamp': VALID_TS,
+      'X-Ash-Ts': VALID_TS,
       'X-Ash-Nonce': VALID_NONCE,
       'X-Ash-Body-Hash': VALID_BODY_HASH,
       'X-Ash-Proof': VALID_PROOF,
