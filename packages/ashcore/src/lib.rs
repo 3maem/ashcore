@@ -57,7 +57,7 @@
 //! | **Deterministic** | Byte-identical output across all platforms |
 //! | **Field Scoping** | Protect specific fields while allowing others to change |
 //! | **Request Chaining** | Link sequential requests cryptographically |
-//! | **WASM Compatible** | Works in browsers and server environments |
+//! | **Zero Dependencies** | Pure Rust with no C dependencies |
 //!
 //! ## Module Overview
 //!
