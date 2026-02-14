@@ -233,7 +233,7 @@ pub enum AshErrorCode {
 
 **TypeScript:**
 ```typescript
-enum AshErrorCode {
+export enum AshErrorCode {
     CTX_NOT_FOUND = 'ASH_CTX_NOT_FOUND',           // 450
     CTX_EXPIRED = 'ASH_CTX_EXPIRED',               // 451
     CTX_ALREADY_USED = 'ASH_CTX_ALREADY_USED',     // 452

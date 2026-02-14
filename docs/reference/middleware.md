@@ -61,13 +61,13 @@ See [Node.js API Reference](api-node.md) for full documentation.
 ## Configuration Options
 
 ```typescript
-interface AshMiddlewareOptions {
+export interface AshMiddlewareOptions {
   store: AshContextStore;
   scopeRegistry?: AshScopePolicyRegistry;
   maxAgeSeconds?: number;       // default: 300
   clockSkewSeconds?: number;    // default: 30
-  onError?: (error: AshError, req, res) => void;
-  extractBody?: (req) => string | undefined;
+  onError?: (error: AshError, req: unknown, res: unknown) => void;
+  extractBody?: (req: unknown) => string | undefined;
 }
 ```
 
