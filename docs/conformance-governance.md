@@ -36,10 +36,10 @@ When a version bump occurs:
 
 1. Increment `ash_version` in the vector generator
 2. Regenerate `vectors.json` from the Rust reference implementation (`cargo run --bin generate_vectors`)
-3. Update `ash_version` in all SDK manifests (Cargo.toml, package.json, pyproject.toml, composer.json, go.mod tag)
-4. Run all 6 SDK conformance runners — every SDK must pass 134/134 (or the new total if vectors were added)
-5. All runners green → merge allowed
-6. Any runner red → merge blocked until the SDK is fixed
+3. Update `ash_version` in all SDK manifests (Cargo.toml, package.json)
+4. Run all SDK conformance runners — every SDK must pass 134/134 (or the new total if vectors were added)
+5. All runners green — merge allowed
+6. Any runner red — merge blocked until the SDK is fixed
 
 No exceptions. No "we'll fix it later" merges.
 
@@ -73,7 +73,6 @@ Every SDK must maintain a conformance runner that:
 - Tests every vector against the SDK's implementation
 - Asserts exact match on expected outputs (byte-identical)
 - Asserts exact match on error `code` and `http_status` for error vectors
-- Runs in CI on every PR
 
 Current runners:
 
@@ -81,10 +80,6 @@ Current runners:
 |-----|--------|
 | Rust | `packages/ashcore/tests/conformance_suite.rs` |
 | Node.js | `packages/ash-node-sdk/tests/conformance.test.ts` |
-| Python | `packages/ash-python-sdk/tests/test_conformance.py` |
-| Go | `packages/ash-go-sdk/conformance_suite_test.go` |
-| PHP | `packages/ash-php-sdk/tests/ConformanceSuiteTest.php` |
-| WASM | `packages/ash-wasm-sdk/tests/conformance_suite.rs` |
 
 ### 8. Exceptions
 
@@ -95,3 +90,4 @@ There are no exceptions to rules 1-4. If a situation arises that seems to requir
 | Date | Change |
 |------|--------|
 | 2026-02-07 | Initial governance document for ash_version 2.3.5 (134 vectors, 6 SDKs) |
+| 2026-02-13 | Updated for v1.0.0 — 2 active SDKs (Rust, Node.js), removed legacy SDK runners |
