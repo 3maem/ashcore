@@ -308,7 +308,7 @@ mod urlencoded_form {
     #[test]
     fn test_urlencoded_plus_as_literal() {
         let result = ash_canonicalize_urlencoded("key=a+b").unwrap();
-        // In ASH protocol, + is literal plus, not space
+        // In ashcore, + is literal plus, not space
         assert!(result.contains("%2B"));
     }
 

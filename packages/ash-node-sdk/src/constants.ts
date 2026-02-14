@@ -1,9 +1,9 @@
-// ASH Protocol Constants — matching ashcore (Rust reference implementation)
+// ashcore constants — matching Rust reference implementation
 
 /** ASH SDK version (library version). */
 export const ASH_SDK_VERSION = '1.0.0';
 
-/** ASH protocol version prefix. */
+/** ashcore version prefix. */
 export const ASH_VERSION_PREFIX = 'ASHv2.1';
 
 // ── Limits ──────────────────────────────────────────────────────────

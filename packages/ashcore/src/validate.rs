@@ -1,4 +1,4 @@
-//! Standalone validators for ASH protocol inputs.
+//! Standalone validators for ashcore inputs.
 //!
 //! These functions extract validation logic that was previously inline
 //! in other functions, making it testable and reusable without changing

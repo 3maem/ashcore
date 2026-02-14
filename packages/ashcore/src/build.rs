@@ -159,7 +159,7 @@ pub struct BuildMeta {
 
 // ── Build Function ───────────────────────────────────────────────────
 
-/// Build an HTTP request proof using ASH protocol.
+/// Build an HTTP request proof using ashcore.
 ///
 /// Orchestrates all Core primitives in a fixed execution order.
 /// Returns the first error encountered (no error accumulation).

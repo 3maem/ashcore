@@ -1,4 +1,4 @@
-//! Error types for ASH protocol.
+//! Error types for ashcore.
 //!
 //! This module provides structured error types with:
 //! - Stable error codes for programmatic handling
@@ -53,7 +53,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
 
-/// Error codes for ASH protocol.
+/// Error codes for ashcore.
 ///
 /// These codes are stable and should not change between versions.
 ///

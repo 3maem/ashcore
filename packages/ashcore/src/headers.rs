@@ -1,4 +1,4 @@
-//! Canonical header extraction for ASH protocol.
+//! Canonical header extraction for ashcore.
 //!
 //! This module provides a single, authoritative function for extracting
 //! ASH-required headers from any HTTP framework. Middlewares should use

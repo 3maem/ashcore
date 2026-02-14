@@ -1,6 +1,6 @@
 //! ASH Configuration Module.
 //!
-//! Server-side configuration for the ASH protocol, including:
+//! Server-side configuration for ashcore, including:
 //!
 //! - **Scope Policies**: Define which fields must be protected per endpoint
 //!

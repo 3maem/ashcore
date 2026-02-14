@@ -28,7 +28,7 @@ function percentEncodeUppercase(input: string): string {
 
 /**
  * Percent-decode a query string component.
- * + is treated as literal plus (NOT space) per ASH protocol.
+ * + is treated as literal plus (NOT space) per ashcore spec.
  */
 function percentDecodeQuery(input: string): string {
   const bytes: number[] = [];

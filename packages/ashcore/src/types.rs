@@ -1,4 +1,4 @@
-//! Core types for ASH protocol.
+//! Core types for ashcore.
 //!
 //! This module defines the data structures used throughout ASH:
 //!

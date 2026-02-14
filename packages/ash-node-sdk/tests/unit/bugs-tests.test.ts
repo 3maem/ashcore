@@ -122,7 +122,7 @@ describe('BUG-004: Negative zero handling', () => {
 });
 
 // ── BUG-005: Plus literal in query canonicalization ──────────────────
-// In ASH protocol, + is treated as literal plus (NOT as space).
+// In ashcore, + is treated as literal plus (NOT as space).
 // This differs from application/x-www-form-urlencoded standard.
 
 describe('BUG-005: Plus is literal in queries', () => {

@@ -1,6 +1,6 @@
 //! Cryptographic proof generation and verification using HMAC-SHA256.
 //!
-//! This module provides the core security functions for the ASH protocol:
+//! This module provides the core security functions for ashcore:
 //!
 //! ## Overview
 //!
@@ -105,7 +105,7 @@ use crate::errors::{AshError, AshErrorCode};
 /// ASH SDK version (library version).
 pub const ASH_SDK_VERSION: &str = "1.0.0";
 
-/// ASH protocol version prefix.
+/// ashcore version prefix.
 pub const ASH_VERSION_PREFIX: &str = "ASHv2.1";
 
 // =========================================================================

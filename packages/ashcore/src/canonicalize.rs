@@ -590,7 +590,7 @@ pub fn ash_canonicalize_urlencoded(input: &str) -> Result<String, AshError> {
             None => (part, ""),
         };
 
-        // Percent-decode (+ is literal plus, not space, per ASH protocol)
+        // Percent-decode (+ is literal plus, not space, per ashcore spec)
         let decoded_key = ash_percent_decode_query(key)?;
         let decoded_value = ash_percent_decode_query(value)?;
 
@@ -947,7 +947,7 @@ mod tests {
 
     #[test]
     fn test_canonicalize_urlencoded_plus_as_literal() {
-        // ASH protocol treats + as literal plus, not space
+        // ashcore treats + as literal plus, not space
         let input = "a=hello+world";
         let output = ash_canonicalize_urlencoded(input).unwrap();
         assert_eq!(output, "a=hello%2Bworld");

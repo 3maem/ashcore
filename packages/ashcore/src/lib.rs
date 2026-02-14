@@ -83,14 +83,9 @@
 //! - **HTTPS required**: ASH does not encrypt data, only signs it
 //! - **Context isolation**: Never reuse context_id across requests
 //!
-//! ## Protocol Version
+//! ## Version
 //!
-//! This library implements ASH Protocol v2.1 with extensions:
-//! - v2.2: Field-level scoping
-//! - v2.3: Request chaining
-//! - v2.3.2: Binding normalization (METHOD|PATH|QUERY format)
-//! - v2.3.4: Bug fixes (BUG-020 through BUG-034)
-//! - v2.3.5: Security hardening (SEC-AUDIT-005 through SEC-AUDIT-007)
+//! ashcore v1.0.0 — wire prefix `ASHv2.1`
 
 #![forbid(unsafe_code)]
 #![forbid(clippy::undocumented_unsafe_blocks)]

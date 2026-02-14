@@ -130,7 +130,7 @@ impl VerifyResult {
 
 // ── Verification Function ─────────────────────────────────────────────
 
-/// Verify an incoming HTTP request using ASH protocol (basic proofs only).
+/// Verify an incoming HTTP request using ashcore (basic proofs only).
 ///
 /// **Note**: This function only handles basic (non-scoped, non-chained) proofs.
 /// For scoped or unified proof verification, use `ash_verify_proof_scoped` or
@@ -324,7 +324,7 @@ pub struct VerifyScopedInput<'a, H: HeaderMapView> {
     pub scope_hash: &'a str,
 }
 
-/// Verify an incoming scoped HTTP request using ASH protocol.
+/// Verify an incoming scoped HTTP request using ashcore.
 ///
 /// Same pipeline as `verify_incoming_request` but additionally validates
 /// the scope hash and uses `ash_build_proof_scoped` for proof comparison.
@@ -463,7 +463,7 @@ pub struct VerifyUnifiedInput<'a, H: HeaderMapView> {
     pub chain_hash: &'a str,
 }
 
-/// Verify an incoming unified HTTP request using ASH protocol.
+/// Verify an incoming unified HTTP request using ashcore.
 ///
 /// Handles scoped proofs, chained proofs, or both. Same pipeline as
 /// `verify_incoming_request` with additional scope/chain validation.
