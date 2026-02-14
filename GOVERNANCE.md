@@ -95,4 +95,4 @@ ASH is open-source, but professionally maintained.
 
 For governance questions:
 
-**Email:** contact@ash-sdk.com
+**Email:** contact@ashcore.com
