@@ -1,18 +1,18 @@
-# ashcore — Security Whitepaper
+# ashcore -- Security Whitepaper
 
-**Version:** 1.0
-**Date:** 2026
+**Version:** 1.0.0
+**Date:** 2026-02-14
 **Author:** 3maem Co.
 
 ---
 
 ## Executive Summary
 
-ASH (Application Security Hash) is a request integrity protocol designed to protect applications from tampering, replay attacks, and data manipulation.
+ashcore (Anti-tamper Security Hash) is a request integrity library designed to protect applications from tampering, replay attacks, and data manipulation.
 
 It provides an additional protection layer that complements authentication, authorization, and transport security.
 
-ASH focuses exclusively on **request integrity**.
+ashcore focuses exclusively on **request integrity**.
 
 ---
 
@@ -20,11 +20,11 @@ ASH focuses exclusively on **request integrity**.
 
 Modern applications face significant security risks:
 
-- **Request tampering** — Attackers modify data in transit
-- **Replay attacks** — Valid requests are captured and resent
-- **Endpoint substitution** — Proofs reused on different endpoints
-- **Automated abuse** — Bots and scripts bypass controls
-- **Client-side manipulation** — Parameters altered before submission
+- **Request tampering** -- Attackers modify data in transit
+- **Replay attacks** -- Valid requests are captured and resent
+- **Endpoint substitution** -- Proofs reused on different endpoints
+- **Automated abuse** -- Bots and scripts bypass controls
+- **Client-side manipulation** -- Parameters altered before submission
 
 Traditional controls (authentication, authorization, TLS) do not guarantee request integrity at the application layer.
 
@@ -32,13 +32,13 @@ Traditional controls (authentication, authorization, TLS) do not guarantee reque
 
 ## Solution Overview
 
-ASH introduces a cryptographic integrity protocol:
+ashcore introduces cryptographic integrity verification:
 
-- **Cryptographic request proofs** — HMAC-based verification
-- **Single-use contexts** — Each request validated only once
-- **Short-lived tokens** — TTL-enforced expiration
-- **Endpoint binding** — Proofs locked to method/path/query
-- **Replay prevention** — Contexts consumed on verification
+- **Cryptographic request proofs** -- HMAC-SHA256 verification
+- **Single-use contexts** -- Each request validated only once
+- **Short-lived tokens** -- TTL-enforced expiration (default: 300 seconds)
+- **Endpoint binding** -- Proofs locked to method/path/query
+- **Replay prevention** -- Contexts consumed on verification
 
 Each request becomes **verifiable** and **non-reusable**.
 
@@ -46,39 +46,51 @@ Each request becomes **verifiable** and **non-reusable**.
 
 ## Security Model
 
-### ASH Enforces
+### ashcore Enforces
 
 - Request authenticity verification
 - Request integrity validation
 - Replay prevention
 - Endpoint binding
 
-### ASH Does NOT Replace
+### ashcore Does NOT Replace
 
 - Authentication (identity verification)
 - Authorization (permission checks)
 - TLS (transport encryption)
 
-**Security remains layered. ASH is one layer.**
+**Security remains layered. ashcore is one layer.**
 
 ---
 
 ## Architecture
 
 ```
-┌────────┐    ┌────────┐    ┌────────┐    ┌────────┐    ┌─────────┐    ┌─────────┐
-│ Client │ → │  Sign  │ → │  Send  │ → │ Verify │ → │ Consume │ → │ Destroy │
-└────────┘    └────────┘    └────────┘    └────────┘    └─────────┘    └─────────┘
+Client        Server        Store
+  |              |             |
+  |-- request -->|             |
+  |              |-- create -->|  (nonce, contextId, binding)
+  |<-- context --|             |
+  |              |             |
+  | derive secret              |
+  | build proof                |
+  |                            |
+  |-- request + headers ------>|
+  |              |-- consume ->|  (atomic, one-time)
+  |              | re-derive   |
+  |              | verify      |
+  |<-- response -|             |
 ```
 
-### Protocol Flow
+### Flow
 
-1. **Server** creates a context (nonce, contextId, binding, clientSecret) and stores it
-2. **Server** sends the nonce and contextId to the client
-3. **Client** derives a client secret and builds an HMAC-SHA256 proof
-4. **Client** sends the request with ASH headers (proof, timestamp, nonce, body hash, context ID)
-5. **Server** consumes the context (atomic, one-time-use), re-derives the proof, and verifies
-6. **Server** rejects if the proof doesn't match, context is expired, or already consumed
+1. **Client** requests a context from the server
+2. **Server** generates a nonce and contextId, stores the context
+3. **Server** returns `{ nonce, contextId, binding }` to the client
+4. **Client** derives a client secret from the nonce and builds an HMAC-SHA256 proof
+5. **Client** sends the request with 5 headers: `x-ash-ts`, `x-ash-nonce`, `x-ash-body-hash`, `x-ash-proof`, `x-ash-context-id`
+6. **Server** consumes the context (atomic, one-time-use), re-derives the secret, and verifies the proof
+7. **Server** rejects if the proof doesn't match, context is expired, or already consumed
 
 ### Core Components
 
@@ -92,7 +104,7 @@ Each request becomes **verifiable** and **non-reusable**.
 
 ## Proof Modes
 
-ASH supports three proof modes:
+ashcore supports three proof modes:
 
 | Mode | Description |
 |------|-------------|
@@ -109,7 +121,7 @@ ASH supports three proof modes:
 | **Proof Generation** | HMAC-SHA256 | Request authentication |
 | **Body Hashing** | SHA-256 | Integrity verification |
 | **Nonce Generation** | CSPRNG | Unpredictability |
-| **Key Derivation** | HMAC-based KDF | Secret derivation |
+| **Key Derivation** | HMAC-SHA256 (single-pass) | Secret derivation |
 | **Comparison** | Constant-time | Timing attack prevention |
 
 ### Design Principles
@@ -144,12 +156,12 @@ ASH supports three proof modes:
 
 ## Defense-in-Depth
 
-ASH implements multiple security layers:
+ashcore implements multiple security layers:
 
-- **Constant-time comparisons** — Prevents timing side-channels
-- **Secure memory clearing** — Reduces forensic exposure
-- **TTL enforcement** — Limits attack window
-- **Atomic store operations** — Guarantees single-use
+- **Constant-time comparisons** -- Prevents timing side-channels
+- **Secure memory clearing** -- Rust: cryptographic zeroization via `zeroize` crate; Node.js: best-effort `destroy()`
+- **TTL enforcement** -- Limits attack window
+- **Atomic store operations** -- Guarantees single-use
 
 ---
 
@@ -169,17 +181,16 @@ All implementations are tested against a single authoritative set of conformance
 | Practice | Recommendation |
 |----------|----------------|
 | Transport | HTTPS only |
-| TTL | 30 seconds (recommended) |
+| TTL | 300 seconds default (use shorter for high-value operations) |
 | Storage | Redis with TLS (production) |
-| Secrets | Rotate regularly |
-| Monitoring | Enable logging |
-| Clocks | Keep synchronized |
+| Monitoring | Enable logging for error code spikes |
+| Clocks | Keep synchronized (NTP) |
 
 ---
 
 ## Limitations
 
-ASH is **not** a complete security solution.
+ashcore is **not** a complete security solution.
 
 It must be combined with:
 
@@ -189,24 +200,24 @@ It must be combined with:
 - Input validation
 - Rate limiting
 
-ASH strengthens — but does not replace — these controls.
+ashcore strengthens -- but does not replace -- these controls.
 
 ---
 
 ## Conclusion
 
-ASH provides a **lightweight**, **developer-friendly**, and **enterprise-ready** protocol for request integrity.
+ashcore provides a **lightweight**, **developer-friendly**, and **enterprise-ready** library for request integrity.
 
 ### Key Takeaways
 
-1. **Protocol, not a framework** — ASH defines a wire-level request integrity protocol with conformance vectors
-2. **Additional layer** — ASH complements existing security controls
-3. **Not a replacement** — Authentication, authorization, and TLS remain essential
-4. **Shared responsibility** — Security requires proper configuration and infrastructure
+1. **Library with conformance vectors** -- ashcore provides request integrity functions with cross-SDK conformance testing
+2. **Additional layer** -- ashcore complements existing security controls
+3. **Not a replacement** -- Authentication, authorization, and TLS remain essential
+4. **Shared responsibility** -- Security requires proper configuration and infrastructure
 
-ASH strengthens request integrity through cryptographic verification and single-use enforcement.
+ashcore strengthens request integrity through cryptographic verification and single-use enforcement.
 
-**Security is a shared responsibility. ASH is one layer.**
+**Security is a shared responsibility. ashcore is one layer.**
 
 ---
 
@@ -218,4 +229,4 @@ For security inquiries:
 
 ---
 
-© 2026 3maem Co. All rights reserved.
+Apache License 2.0. See [LICENSE](../../LICENSE) for full terms.

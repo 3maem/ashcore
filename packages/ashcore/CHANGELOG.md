@@ -478,7 +478,7 @@ filling coverage gaps identified by systematic analysis of the existing 32-file 
 
 ### Added
 - Initial release of ashcore v1.0.0
-- ASH (Application Security Hash) protocol implementation
+- ashcore (Anti-tamper Security Hash) library implementation
 - RFC 8785 compliant JSON canonicalization
 - Request integrity verification with server-signed seals
 - Anti-replay protection via timestamp validation

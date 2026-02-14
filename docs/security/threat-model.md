@@ -1,17 +1,17 @@
-# ASH Core Threat Model
+# ashcore Threat Model
 
 **Version:** 1.0.0
-**Date:** 2026-02-07  
+**Date:** 2026-02-14
 **Classification:** Public
 
 ## 1. Overview
 
-This document outlines the threat model for the ASH (Anti-tamper Security Hash) Core library. It identifies potential threats, attack vectors, and the security controls implemented to mitigate them.
+This document outlines the threat model for ashcore (Anti-tamper Security Hash). It identifies potential threats, attack vectors, and the security controls implemented to mitigate them.
 
 ### 1.1 Scope
 
-- **In Scope:** ASH Core Rust library (`ashcore` crate)
-- **Out of Scope:** Application-specific implementations, network security, client-side JavaScript
+- **In Scope:** `ashcore` Rust crate and `@3maem/ash-node-sdk` Node.js package
+- **Out of Scope:** Application-specific implementations, network security, browser-side JavaScript
 
 ### 1.2 Target Environment
 
@@ -59,7 +59,7 @@ This document outlines the threat model for the ASH (Anti-tamper Security Hash) 
 - ✅ One-time context IDs (consumed on use)
 - ✅ Timestamp validation (5-minute default TTL)
 - ✅ Nonce uniqueness (128+ bits entropy)
-- ✅ Clock skew tolerance (60 seconds)
+- ✅ Clock skew tolerance (30 seconds)
 
 **Residual Risk:** Low (requires real-time interception within TTL window)
 
@@ -117,8 +117,8 @@ This document outlines the threat model for the ASH (Anti-tamper Security Hash) 
 - ✅ JSON nesting depth limit (64 levels)
 - ✅ Array index limit (10,000)
 - ✅ Scope field limit (100 fields)
-- ✅ Regex complexity limits (8 wildcards, 512 byte patterns)
-- ✅ HMAC key size limit (512 hex chars)
+- ✅ Scope policy pattern limits (8 wildcards, 512-byte patterns)
+- ✅ Nonce length limit (512 hex chars)
 
 **Residual Risk:** Low (resource limits enforced)
 
@@ -240,11 +240,12 @@ Defense:
 
 | Control | Implementation | Verification |
 |---------|---------------|--------------|
-| Cryptographic Proof | HMAC-SHA256 | Unit tests, cross-SDK vectors |
-| Constant-Time Compare | `subtle` crate | Security audit, timing tests |
+| Cryptographic Proof | HMAC-SHA256 | Unit tests, 134 cross-SDK conformance vectors |
+| Constant-Time Compare | Rust: `subtle` crate; Node.js: `crypto.timingSafeEqual` | Security audit, timing tests |
 | Input Validation | Length/type limits | Property-based tests |
 | Replay Prevention | Context consumption | Integration tests |
-| Safe Memory | `#![forbid(unsafe_code)]` | Compiler guarantees |
+| Safe Memory (Rust) | `#![forbid(unsafe_code)]` + `zeroize` crate | Compiler guarantees |
+| Safe Memory (Node.js) | Best-effort `destroy()` | Code review |
 | Error Sanitization | Generic messages | Code review |
 
 ---
@@ -253,7 +254,7 @@ Defense:
 
 ### 7.1 Assumptions
 
-1. **HTTPS Transport:** ASH does not encrypt data, only signs it
+1. **HTTPS Transport:** ashcore does not encrypt data, only signs it
 2. **Synchronized Clocks:** Client/server clocks within 5 minutes
 3. **Secure Context Store:** Server-side context storage is secure
 4. **CSPRNG Availability:** OS provides cryptographically secure randomness
@@ -264,7 +265,7 @@ Defense:
 |------------|--------|------------|
 | No encryption | Payload visible | Use HTTPS |
 | No authentication | Anyone with valid proof accepted | Implement separate auth |
-| Clock skew | Legitimate requests may fail | 60-second tolerance |
+| Clock skew | Legitimate requests may fail | 30-second tolerance |
 | Context storage required | Server state needed | Redis/memory stores |
 
 ---
@@ -285,13 +286,23 @@ Defense:
 
 ## 9. Security Testing
 
+### Rust (`ashcore`)
+
 | Test Type | Coverage | Status |
 |-----------|----------|--------|
-| Unit Tests | 183 tests | ✅ 100% pass |
-| Integration Tests | 200+ tests | ✅ 100% pass |
-| Fuzz Tests | 57 tests | ✅ 100% pass |
-| Property-Based | 26 tests | ✅ 100% pass |
-| Security Audit | Comprehensive | ✅ Grade A |
+| Unit Tests | 300+ tests | 100% pass |
+| Integration Tests | 1,700+ tests | 100% pass |
+| Fuzz Tests | 57 tests | 100% pass |
+| Property-Based | 26 tests | 100% pass |
+| Conformance Vectors | 134 vectors | 100% pass |
+
+### Node.js (`@3maem/ash-node-sdk`)
+
+| Test Type | Coverage | Status |
+|-----------|----------|--------|
+| Unit + Integration | 1,490+ tests | 100% pass |
+| Security Audit Tests | Comprehensive | 100% pass |
+| Conformance Vectors | 134 vectors | 100% pass |
 
 ---
 
@@ -308,7 +319,7 @@ Defense:
 
 ### Response Procedures
 
-1. **Log Analysis:** Check ASH error codes in application logs
+1. **Log Analysis:** Check ashcore error codes in application logs
 2. **Rate Limiting:** Implement per-client rate limits
 3. **Alerting:** Configure monitoring for error code spikes
 4. **Forensics:** Preserve context IDs for investigation
@@ -317,17 +328,16 @@ Defense:
 
 ## 11. References
 
-- [ASH Security Checklist](./security-checklist.md)
-- [ASH Attack Scenarios](./attack-scenarios.md)
-- [ASH Architecture](./architecture.md)
+- [ashcore Security Guide](./security-checklist.md)
+- [ashcore Attack Scenarios](./attack-scenarios.md)
+- [ashcore Architecture](./architecture.md)
 - [Error Codes Reference](../reference/error-codes.md)
-- [SDK Naming Convention](../development/SDK_NAMING_CONVENTION.md)
 
 ---
 
-**Document Owner:** Security Team  
-**Review Cycle:** Quarterly  
-**Last Review:** 2026-02-07
+**Document Owner:** Security Team
+**Review Cycle:** Quarterly
+**Last Review:** 2026-02-14
 
 ---
 

@@ -7,11 +7,11 @@
 
 **Developed by 3maem Co. | شركة عمائم**
 
-Core Rust implementation of the ASH (Application Security Hash) protocol for request integrity verification and anti-replay protection.
+Core Rust implementation of ashcore (Anti-tamper Security Hash) for request integrity verification and anti-replay protection.
 
 ## Overview
 
-ASH Core provides the foundational cryptographic primitives and canonicalization functions used across all ASH SDK implementations. It ensures byte-identical output across all platforms through deterministic processing.
+ashcore provides the foundational cryptographic primitives and canonicalization functions for request integrity verification. It ensures byte-identical output across all platforms through deterministic processing.
 
 ## Features
 

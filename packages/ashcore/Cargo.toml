@@ -7,7 +7,7 @@ repository.workspace = true
 authors.workspace = true
 keywords.workspace = true
 categories.workspace = true
-description = "ASH (Application Security Hash) - RFC 8785 compliant request integrity verification with server-signed seals, anti-replay protection, and zero client secrets"
+description = "ashcore (Anti-tamper Security Hash) — RFC 8785 compliant request integrity verification with anti-replay protection"
 readme = "README.md"
 exclude = ["tests/", "benches/"]
 

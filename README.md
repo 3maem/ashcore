@@ -1,4 +1,4 @@
-# ASH — Application Security Hash
+# ashcore — Anti-tamper Security Hash
 
 **Version:** 1.0.0 | **License:** Apache-2.0 | **Conformance:** [134/134 vectors (byte-identical)](#conformance-status)
 

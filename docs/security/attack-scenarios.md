@@ -1,6 +1,6 @@
-# ASH Attack Scenarios & Defense Diagrams
+# ashcore Attack Scenarios & Defense Diagrams
 
-This document visualizes common attack attempts and how ASH prevents them.
+This document visualizes common attack attempts and how ashcore prevents them.
 
 ---
 
@@ -9,29 +9,19 @@ This document visualizes common attack attempts and how ASH prevents them.
 ### Attack
 
 ```
-┌──────────────────────┐
-│      Attacker        │
-└──────────┬───────────┘
-           ↓
-   Intercepts request
-           ↓
-   Modifies body/params
-           ↓
-   Forwards to server
-           ↓
-┌──────────────────────┐
-│       Server         │
-└──────────────────────┘
+Attacker intercepts request
+  -> Modifies body/params
+  -> Forwards to server
 ```
 
 ### Result
 
-❌ Proof mismatch → verification fails
+Rejected -- proof mismatch, verification fails.
 
 ### Defense
 
-- HMAC proof
-- Body hashing
+- HMAC-SHA256 proof covers timestamp + binding + body hash
+- SHA-256 body hash independently verified
 
 ---
 
@@ -40,27 +30,20 @@ This document visualizes common attack attempts and how ASH prevents them.
 ### Attack
 
 ```
-┌──────────────────────┐
-│      Attacker        │
-└──────────┬───────────┘
-           ↓
-  Captures valid request
-           ↓
-     Resends later
-           ↓
-┌──────────────────────┐
-│       Server         │
-└──────────────────────┘
+Attacker captures valid request
+  -> Waits
+  -> Resends identical request
 ```
 
 ### Result
 
-❌ Context already consumed → rejected
+Rejected -- context already consumed, or timestamp expired.
 
 ### Defense
 
-- Single-use contexts
-- TTL expiration
+- Single-use contexts (consumed on verification)
+- TTL expiration (default: 300 seconds)
+- Timestamp freshness validation
 
 ---
 
@@ -69,26 +52,18 @@ This document visualizes common attack attempts and how ASH prevents them.
 ### Attack
 
 ```
-┌──────────────────────┐
-│      Attacker        │
-└──────────┬───────────┘
-           ↓
-  Valid proof for /profile
-           ↓
-   Reused on /transfer
-           ↓
-┌──────────────────────┐
-│       Server         │
-└──────────────────────┘
+Attacker obtains valid proof for POST /api/profile
+  -> Reuses proof on POST /api/transfer
 ```
 
 ### Result
 
-❌ Binding mismatch → rejected
+Rejected -- binding mismatch.
 
 ### Defense
 
-- Method/path/query binding
+- Proof is bound to METHOD|PATH|QUERY
+- Binding is part of the HMAC input
 
 ---
 
@@ -97,26 +72,20 @@ This document visualizes common attack attempts and how ASH prevents them.
 ### Attack
 
 ```
-┌──────────────────────┐
-│      Attacker        │
-└──────────┬───────────┘
-           ↓
-  Measures comparison timing
-           ↓
-  Attempts to guess proof
-           ↓
-┌──────────────────────┐
-│       Server         │
-└──────────────────────┘
+Attacker sends many proof attempts
+  -> Measures response timing
+  -> Attempts to deduce correct proof bytes
 ```
 
 ### Result
 
-❌ No signal leakage
+Rejected -- no timing signal leakage.
 
 ### Defense
 
-- Constant-time comparisons
+- Rust: constant-time comparison via `subtle` crate (fixed 2048-byte work size, 8 iterations)
+- Node.js: `crypto.timingSafeEqual` with length padding
+- No early-exit in verification loops
 
 ---
 
@@ -125,35 +94,27 @@ This document visualizes common attack attempts and how ASH prevents them.
 ### Attack
 
 ```
-┌──────────────────────┐
-│      Attacker        │
-└──────────┬───────────┘
-           ↓
-  Access process memory
-           ↓
-  Extract secrets
-           ↓
-┌──────────────────────┐
-│    Server Memory     │
-└──────────────────────┘
+Attacker gains access to process memory
+  -> Attempts to extract secrets/proofs
 ```
 
 ### Result
 
-❌ Secrets cleared after use
+Mitigated -- secrets cleared after use.
 
 ### Defense
 
-- Secure memory utilities
+- Rust: cryptographic zeroization via `zeroize` crate (Drop implementations on all sensitive fields)
+- Node.js: best-effort cleanup via `destroy()` (dereferences sensitive values; JavaScript/V8 does not guarantee cryptographic zeroization due to garbage collection)
 
 ---
 
 ## Summary Table
 
-| Attack | Prevented By |
-|--------|--------------|
-| Tampering | HMAC proof |
-| Replay | Single-use contexts |
-| Endpoint swap | Binding validation |
-| Timing | Constant-time compare |
-| Memory leaks | Secure clearing |
+| Attack | Defense |
+|--------|---------|
+| Tampering | HMAC-SHA256 proof + SHA-256 body hash |
+| Replay | Single-use contexts + TTL + timestamp freshness |
+| Endpoint swap | Binding validation (METHOD\|PATH\|QUERY) |
+| Timing | Constant-time comparison |
+| Memory forensics | Rust: `zeroize` crate; Node.js: best-effort `destroy()` |
