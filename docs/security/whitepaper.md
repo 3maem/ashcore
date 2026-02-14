@@ -1,4 +1,4 @@
-# ASH Protocol — Security Whitepaper
+# ashcore — Security Whitepaper
 
 **Version:** 1.0
 **Date:** 2026

@@ -1,6 +1,6 @@
-# ASH Protocol Specification v2.3.5
+# ashcore Specification v2.3.5
 
-**Anti-tamper Security Hash (ASH)** — Request Integrity & Replay Protection Protocol
+**Anti-tamper Security Hash (ASH)** — Request Integrity & Replay Protection Library
 
 ---
 
@@ -747,4 +747,4 @@ equal("abc", "abcd")  = false
 
 ## License
 
-ASH Protocol Specification is released under the Apache License 2.0.
+ashcore is released under the Apache License 2.0.
