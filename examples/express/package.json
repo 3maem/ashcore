@@ -2,7 +2,7 @@
   "name": "ash-example-express",
   "version": "1.0.0",
   "private": true,
-  "description": "ASH example with Express.js",
+  "description": "ashcore example with Express.js",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
