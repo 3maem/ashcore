@@ -1,6 +1,4 @@
-# ASH Security Framework
-
-## Security Whitepaper
+# ASH Protocol — Security Whitepaper
 
 **Version:** 1.0
 **Date:** 2026
@@ -10,7 +8,7 @@
 
 ## Executive Summary
 
-ASH is a protocol-level request integrity framework designed to protect applications from tampering, replay attacks, and data manipulation.
+ASH (Application Security Hash) is a request integrity protocol designed to protect applications from tampering, replay attacks, and data manipulation.
 
 It provides an additional protection layer that complements authentication, authorization, and transport security.
 
@@ -34,7 +32,7 @@ Traditional controls (authentication, authorization, TLS) do not guarantee reque
 
 ## Solution Overview
 
-ASH introduces a cryptographic integrity layer:
+ASH introduces a cryptographic integrity protocol:
 
 - **Cryptographic request proofs** — HMAC-based verification
 - **Single-use contexts** — Each request validated only once
@@ -50,16 +48,16 @@ Each request becomes **verifiable** and **non-reusable**.
 
 ### ASH Guarantees
 
-- ✅ Requests are authentic
-- ✅ Requests were not modified
-- ✅ Requests are not replayed
-- ✅ Requests are bound to their endpoint
+- Requests are authentic
+- Requests were not modified
+- Requests are not replayed
+- Requests are bound to their endpoint
 
 ### ASH Does NOT Replace
 
-- ❌ Authentication (identity verification)
-- ❌ Authorization (permission checks)
-- ❌ TLS (transport encryption)
+- Authentication (identity verification)
+- Authorization (permission checks)
+- TLS (transport encryption)
 
 **Security remains layered. ASH is one layer.**
 
@@ -73,13 +71,34 @@ Each request becomes **verifiable** and **non-reusable**.
 └────────┘    └────────┘    └────────┘    └────────┘    └─────────┘    └─────────┘
 ```
 
+### Protocol Flow
+
+1. **Server** creates a context (nonce, contextId, binding, clientSecret) and stores it
+2. **Server** sends the nonce and contextId to the client
+3. **Client** derives a client secret and builds an HMAC-SHA256 proof
+4. **Client** sends the request with ASH headers (proof, timestamp, nonce, body hash, context ID)
+5. **Server** consumes the context (atomic, one-time-use), re-derives the proof, and verifies
+6. **Server** rejects if the proof doesn't match, context is expired, or already consumed
+
 ### Core Components
 
 | Component | Responsibility |
 |-----------|----------------|
-| **Client SDK** | Context creation, nonce generation, proof signing |
-| **Verification Server** | Proof validation, replay detection, binding check |
-| **Context Store** | Single-use enforcement, TTL expiration, atomic ops |
+| **Server** | Context creation, nonce generation, proof verification, replay detection |
+| **Client** | Secret derivation, proof signing, header attachment |
+| **Context Store** | Single-use enforcement, TTL expiration, atomic operations |
+
+---
+
+## Proof Modes
+
+ASH supports three proof modes:
+
+| Mode | Description |
+|------|-------------|
+| **Basic** | HMAC-SHA256 proof over timestamp + binding + body hash |
+| **Scoped** | Basic proof + field-level scope hash for selective field protection |
+| **Unified** | Scoped proof + chain hash linking to a previous proof for request chaining |
 
 ---
 
@@ -134,13 +153,24 @@ ASH implements multiple security layers:
 
 ---
 
+## Available Implementations
+
+| Language | Package | Conformance |
+|----------|---------|-------------|
+| **Rust** | `ashcore` | 134/134 vectors |
+| **Node.js** | `@3maem/ash-node-sdk` | 134/134 vectors |
+
+All implementations are tested against a single authoritative set of conformance vectors generated from the Rust reference implementation.
+
+---
+
 ## Deployment Best Practices
 
 | Practice | Recommendation |
 |----------|----------------|
 | Transport | HTTPS only |
 | TTL | 30 seconds (recommended) |
-| Storage | Redis with TLS |
+| Storage | Redis with TLS (production) |
 | Secrets | Rotate regularly |
 | Monitoring | Enable logging |
 | Clocks | Keep synchronized |
@@ -165,13 +195,14 @@ ASH strengthens — but does not replace — these controls.
 
 ## Conclusion
 
-ASH provides a **lightweight**, **developer-friendly**, and **enterprise-ready** security layer for request integrity.
+ASH provides a **lightweight**, **developer-friendly**, and **enterprise-ready** protocol for request integrity.
 
 ### Key Takeaways
 
-1. **Additional layer** — ASH complements existing security controls
-2. **Not a replacement** — Authentication, authorization, and TLS remain essential
-3. **Shared responsibility** — Security requires proper configuration and infrastructure
+1. **Protocol, not a framework** — ASH defines a wire-level request integrity protocol with conformance vectors
+2. **Additional layer** — ASH complements existing security controls
+3. **Not a replacement** — Authentication, authorization, and TLS remain essential
+4. **Shared responsibility** — Security requires proper configuration and infrastructure
 
 ASH strengthens request integrity through cryptographic verification and single-use enforcement.
 
@@ -183,7 +214,7 @@ ASH strengthens request integrity through cryptographic verification and single-
 
 For security inquiries:
 
-**Email:** security@ash-sdk.com
+**Email:** security@ashcore.com
 
 ---
 
