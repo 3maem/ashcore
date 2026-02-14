@@ -22,7 +22,7 @@ export {
 export { AshError, AshErrorCode } from './errors.js';
 
 // ── Types ────────────────────────────────────────────────────────────
-export type { AshMode, ScopedProofResult, UnifiedProofResult } from './types.js';
+export type { ScopedProofResult, UnifiedProofResult } from './types.js';
 
 // ── Validation ───────────────────────────────────────────────────────
 export {

@@ -1,6 +1,3 @@
-/** ASH security modes. */
-export type AshMode = 'minimal' | 'balanced' | 'strict';
-
 /** Result from building a scoped proof. */
 export interface ScopedProofResult {
   proof: string;
