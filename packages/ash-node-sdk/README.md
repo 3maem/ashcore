@@ -1,6 +1,6 @@
 # @3maem/ash-node-sdk
 
-ASH (Anti-tamper Security Hash) Node.js SDK — HMAC-SHA256 request signing and verification for tamper-proof API communication.
+ashcore (Anti-tamper Security Hash) Node.js SDK — HMAC-SHA256 request signing and verification for tamper-proof API communication.
 
 ## Features
 
@@ -14,7 +14,7 @@ ASH (Anti-tamper Security Hash) Node.js SDK — HMAC-SHA256 request signing and 
 - **CLI tool** — `ash build`, `ash verify`, `ash inspect` from the terminal
 - **Debug trace** — step-by-step pipeline inspection with timing
 - **CJS + ESM + DTS** — dual build with full TypeScript declarations
-- **1370+ tests** — conformance, PT, security audit, QA, fuzz, property-based
+- **1490+ tests** — conformance, PT, security audit, QA, fuzz, property-based
 
 ## Install
 
@@ -31,17 +31,17 @@ import { ashBuildRequest } from '@3maem/ash-node-sdk';
 
 // After receiving nonce + contextId from the server:
 const result = ashBuildRequest({
-  nonce,           // Server-provided nonce (64+ hex chars)
+  nonce,           // Server-provided nonce (32+ hex chars)
   contextId,       // Server-provided context ID
   method: 'POST',
   path: '/api/orders',
   body: JSON.stringify({ amount: 100, currency: 'USD' }),
 });
 
-// Send request with ASH headers:
+// Send request with ashcore headers:
 // x-ash-ts, x-ash-nonce, x-ash-body-hash, x-ash-proof, x-ash-context-id
 
-result.destroy(); // Zero sensitive data when done
+result.destroy(); // Clear sensitive data (best-effort in JS)
 ```
 
 ### Server: Express middleware
@@ -154,8 +154,8 @@ Constant-time string comparison.
 #### `ashValidateNonce(nonce): void`
 Validate nonce format (32-512 hex chars).
 
-#### `ashValidateTimestamp(timestamp, maxAge, clockSkew): void`
-Validate timestamp freshness.
+#### `ashValidateTimestamp(timestamp, maxAge, clockSkew): number`
+Validate timestamp freshness. Returns parsed timestamp value.
 
 ### Layer 2: Server Integration
 
@@ -186,7 +186,7 @@ interface BuildRequestResult {
   nonce: string;
   scopeHash?: string;
   chainHash?: string;
-  destroy(): void;        // Zero sensitive data
+  destroy(): void;        // Clear sensitive data (best-effort in JS)
 }
 ```
 
@@ -216,7 +216,7 @@ interface VerifyResult {
 ```
 
 #### `ashExtractHeaders(headers): AshHeaderBundle`
-Extract and validate ASH headers (case-insensitive, control char rejection, length limits).
+Extract and validate ashcore headers (case-insensitive, control char rejection, length limits).
 
 #### `AshMemoryStore`
 In-memory context store with TTL and auto-cleanup.
@@ -231,7 +231,7 @@ await store.store(ctx);
 await store.get(id);       // Returns AshContext | null
 await store.consume(id);   // Atomic one-time-use (throws on reuse)
 await store.cleanup();     // Manual expired entry removal
-store.destroy();           // Stop timers, clear store
+store.destroy();           // Stop timers, clear store (AshMemoryStore only, not on AshContextStore interface)
 ```
 
 #### `AshRedisStore`
@@ -254,8 +254,8 @@ Route-level scope field enforcement.
 ```ts
 const registry = new AshScopePolicyRegistry();
 
-// Exact match
-registry.register({ pattern: 'POST /api/orders', fields: ['amount', 'currency'] });
+// Exact match (required: true rejects requests without scope headers)
+registry.register({ pattern: 'POST /api/orders', fields: ['amount', 'currency'], required: true });
 
 // Param match
 registry.register({ pattern: 'PUT /api/orders/:id', fields: ['status'] });
@@ -277,8 +277,8 @@ interface AshMiddlewareOptions {
   scopeRegistry?: AshScopePolicyRegistry;
   maxAgeSeconds?: number;        // Default: 300
   clockSkewSeconds?: number;     // Default: 30
-  onError?: (error: AshError, req: any, res: any) => void;
-  extractBody?: (req: any) => string | undefined;
+  onError?: (error: AshError, req: unknown, res: unknown) => void;
+  extractBody?: (req: unknown) => string | undefined;
 }
 ```
 
