@@ -411,6 +411,12 @@ See [`examples/`](./examples/) for complete working examples:
 - `fastify` >= 4.0.0 — for `ashFastifyPlugin()`
 - `ioredis` >= 5.0.0 — for `AshRedisStore`
 
+## Links
+
+- [Website](https://ashcore.ai)
+- [GitHub](https://github.com/3maem/ashcore)
+- [npm](https://www.npmjs.com/package/@3maem/ash-node-sdk)
+
 ## License
 
 Apache-2.0

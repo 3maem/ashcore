@@ -117,6 +117,12 @@ See [`tests/conformance/README.md`](tests/conformance/README.md) for vector form
 
 ---
 
+## Links
+
+- [Website](https://ashcore.ai)
+- [Rust Crate](https://crates.io/crates/ashcore)
+- [Node.js SDK](https://www.npmjs.com/package/@3maem/ash-node-sdk)
+
 ## License
 
 Apache-2.0
