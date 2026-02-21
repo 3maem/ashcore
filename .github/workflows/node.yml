@@ -1,0 +1,61 @@
+name: Node.js CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'packages/ash-node-sdk/**'
+      - 'examples/**'
+      - 'package.json'
+      - '.github/workflows/node.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/ash-node-sdk/**'
+
+jobs:
+  test:
+    name: Test Node.js SDK
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Node.js SDK
+        run: npm run build --workspace=packages/ash-node-sdk
+
+      - name: Run tests
+        run: npm test --workspace=packages/ash-node-sdk
+
+      - name: Run linter
+        run: npm run lint --workspace=packages/ash-node-sdk
+
+  conformance:
+    name: Conformance Tests
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run conformance tests against vectors
+        run: npm run test:conformance --workspace=packages/ash-node-sdk --if-present

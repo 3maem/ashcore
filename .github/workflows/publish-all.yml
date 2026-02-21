@@ -1,0 +1,46 @@
+name: Publish All Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      npm:
+        description: 'Publish to npm (@3maem/ash-node-sdk)'
+        required: false
+        type: boolean
+        default: true
+      crates:
+        description: 'Publish to crates.io (ashcore)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  publish-npm:
+    name: npm
+    if: ${{ inputs.npm }}
+    uses: ./.github/workflows/publish-npm.yml
+    secrets: inherit
+
+  publish-crates:
+    name: crates.io
+    if: ${{ inputs.crates }}
+    uses: ./.github/workflows/publish-crates.yml
+    with:
+      dry_run: false
+    secrets: inherit
+
+  summary:
+    name: Summary
+    runs-on: ubuntu-latest
+    needs: [publish-npm, publish-crates]
+    if: always()
+
+    steps:
+      - name: Create summary
+        run: |
+          echo "# Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Registry | Package | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| npm | @3maem/ash-node-sdk | ${{ needs.publish-npm.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| crates.io | ashcore | ${{ needs.publish-crates.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY

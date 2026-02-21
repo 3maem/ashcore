@@ -1,0 +1,55 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# Node.js
+node_modules/
+dist/
+*.log
+.npm
+
+# Build artifacts (common)
+bin/
+obj/
+*.pdb
+*.user
+*.userosscache
+*.suo
+*.cache
+.vs/
+*.nupkg
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+.coverage
+htmlcov/
+
+# Build artifacts
+*.wasm
+*.wasm.gz
+
+# Internal / private
+internal/
+private/
+drafts/
+tmp-*
+
+# Lock files
+package-lock.json

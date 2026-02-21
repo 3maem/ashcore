@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/3maem/ashcore#readme
+    about: Check the documentation before opening an issue
+  - name: Discussions
+    url: https://github.com/3maem/ashcore/discussions
+    about: Ask questions and discuss ASH
+  - name: Security Vulnerabilities
+    url: mailto:security@ashcore.com
+    about: Report sensitive security vulnerabilities privately

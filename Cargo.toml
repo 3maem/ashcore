@@ -1,0 +1,39 @@
+[workspace]
+resolver = "2"
+members = [
+    "packages/ashcore",
+]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/3maem/ashcore"
+authors = ["3maem <support@ashcore.com>"]
+keywords = ["security", "integrity", "anti-tamper", "replay-protection", "cryptography"]
+categories = ["cryptography", "web-programming"]
+
+[workspace.dependencies]
+# Core dependencies
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+base64 = "0.21"
+unicode-normalization = "0.1"
+subtle = "2.5"
+hmac = "0.12"
+hex = "0.4"
+zeroize = "1.7"
+getrandom = "0.2"
+regex = "1.10"
+ryu = "1.0"
+
+# Testing
+criterion = "0.5"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

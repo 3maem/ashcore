@@ -1,0 +1,1542 @@
+{
+  "ash_version": "1.0.0",
+  "byte_rules": {
+    "delimiter_pipe": {
+      "byte_hex": "7C",
+      "char": "|"
+    },
+    "delimiter_us": {
+      "byte_hex": "1F",
+      "char": "\u001f"
+    },
+    "hex_output": "lowercase",
+    "string_encoding": "utf-8",
+    "timestamp": "seconds_ascii_no_leading_zeros"
+  },
+  "canonical_encoding": "UTF-8",
+  "determinism_rule": "All expected outputs must match byte-for-byte across all implementations",
+  "domains": {
+    "chain_hash": {
+      "algorithm": "sha256",
+      "message_format": "{previous_proof_hex_lowercase_ascii}",
+      "note": "hashes the ASCII bytes of the lowercase hex string, NOT the decoded binary bytes",
+      "output": "lowercase_hex_64"
+    },
+    "client_secret": {
+      "algorithm": "hmac-sha256",
+      "hmac_key": "nonce",
+      "message_format": "{context_id}|{binding}",
+      "output": "lowercase_hex_64"
+    },
+    "proof": {
+      "algorithm": "hmac-sha256",
+      "hmac_key": "client_secret",
+      "message_format": "{timestamp}|{binding}|{body_hash}",
+      "output": "lowercase_hex_64"
+    },
+    "scope_hash": {
+      "algorithm": "sha256",
+      "field_name_policy": {
+        "case_fold": "none",
+        "dedupe": "yes_keep_one",
+        "sort": "codepoint_lexicographic",
+        "trim": "none",
+        "unicode_normalization": "NFC"
+      },
+      "message_format": "{sorted_field_names joined by \\x1F}",
+      "note": "hashes field NAMES only, not field values or JSON",
+      "output": "lowercase_hex_64"
+    },
+    "scoped_proof": {
+      "algorithm": "hmac-sha256",
+      "hmac_key": "client_secret",
+      "message_format": "{timestamp}|{binding}|{body_hash}|{scope_hash}",
+      "output": "lowercase_hex_64"
+    },
+    "unified_proof": {
+      "algorithm": "hmac-sha256",
+      "hmac_key": "client_secret",
+      "message_format": "{timestamp}|{binding}|{body_hash}|{scope_hash}|{chain_hash}",
+      "output": "lowercase_hex_64"
+    }
+  },
+  "error_registry": {
+    "ASH_BINDING_MISMATCH": {
+      "http_status": 461
+    },
+    "ASH_CANONICALIZATION_ERROR": {
+      "http_status": 484
+    },
+    "ASH_CHAIN_BROKEN": {
+      "http_status": 474
+    },
+    "ASH_CTX_ALREADY_USED": {
+      "http_status": 452
+    },
+    "ASH_CTX_EXPIRED": {
+      "http_status": 451
+    },
+    "ASH_CTX_NOT_FOUND": {
+      "http_status": 450
+    },
+    "ASH_INTERNAL_ERROR": {
+      "http_status": 500
+    },
+    "ASH_MODE_VIOLATION": {
+      "http_status": 486
+    },
+    "ASH_PROOF_INVALID": {
+      "http_status": 460
+    },
+    "ASH_PROOF_MISSING": {
+      "http_status": 483
+    },
+    "ASH_SCOPED_FIELD_MISSING": {
+      "http_status": 475
+    },
+    "ASH_SCOPE_MISMATCH": {
+      "http_status": 473
+    },
+    "ASH_TIMESTAMP_INVALID": {
+      "http_status": 482
+    },
+    "ASH_UNSUPPORTED_CONTENT_TYPE": {
+      "http_status": 415
+    },
+    "ASH_VALIDATION_ERROR": {
+      "http_status": 485
+    }
+  },
+  "features": [
+    "canonical_json_v1",
+    "scoped_proof_v1",
+    "chain_hash_v1",
+    "unified_proof_v1"
+  ],
+  "generated_at": "1770466514Z",
+  "generated_from": "rust-core",
+  "generator_version": "gen-v1",
+  "hash_algorithms": {
+    "default": "sha256",
+    "hmac_default": "hmac-sha256"
+  },
+  "hex_case": "lowercase_output_uppercase_percent",
+  "invalid_utf8": "reject",
+  "json_duplicate_keys": "last_wins",
+  "json_input_mode": "text_only",
+  "key_sorting": "jcs_rfc8785",
+  "limits": {
+    "max_binding_len": 8192,
+    "max_context_id_len": 256,
+    "max_json_depth": 64,
+    "max_nonce_hex_len": 512,
+    "max_payload_bytes": 10485760,
+    "max_query_pairs": 256,
+    "max_scope_field_len": 64,
+    "max_scope_fields": 100
+  },
+  "newline_policy": "preserve",
+  "path_normalization": "rfc3986_remove_dot_segments",
+  "path_percent_decode": "decode_all",
+  "platform": "windows",
+  "plus_policy": "literal_plus_never_space",
+  "query_duplicate_policy": "sort_by_key_then_value",
+  "query_flag_policy": "flag_equals_empty",
+  "query_normalization": "decode_then_reencode_once",
+  "reference_time": 1700000000,
+  "schema_version": 1,
+  "timestamp_policy": {
+    "skew_seconds": 60,
+    "ttl_seconds": 300
+  },
+  "unicode_normalization": "NFC",
+  "vectors": {
+    "binding_normalization": [
+      {
+        "description": "Basic POST binding",
+        "expected": "POST|/api/users|",
+        "id": "binding-001",
+        "input": {
+          "method": "POST",
+          "path": "/api/users",
+          "query": ""
+        }
+      },
+      {
+        "description": "Method lowercase to upper",
+        "expected": "POST|/api/users|",
+        "id": "binding-002",
+        "input": {
+          "method": "post",
+          "path": "/api/users",
+          "query": ""
+        }
+      },
+      {
+        "description": "Duplicate slashes collapsed",
+        "expected": "GET|/api/users/profile|",
+        "id": "binding-003",
+        "input": {
+          "method": "GET",
+          "path": "/api//users///profile",
+          "query": ""
+        }
+      },
+      {
+        "description": "Trailing slash removed",
+        "expected": "PUT|/api/users|",
+        "id": "binding-004",
+        "input": {
+          "method": "PUT",
+          "path": "/api/users/",
+          "query": ""
+        }
+      },
+      {
+        "description": "Root path preserved",
+        "expected": "GET|/|",
+        "id": "binding-005",
+        "input": {
+          "method": "GET",
+          "path": "/",
+          "query": ""
+        }
+      },
+      {
+        "description": "Query sorted in binding",
+        "expected": "GET|/api/users|a=1&b=2&z=3",
+        "id": "binding-006",
+        "input": {
+          "method": "GET",
+          "path": "/api/users",
+          "query": "z=3&a=1&b=2"
+        }
+      },
+      {
+        "description": "Dot segment removed",
+        "expected": "GET|/api/users|",
+        "id": "binding-007",
+        "input": {
+          "method": "GET",
+          "path": "/api/./users",
+          "query": ""
+        }
+      },
+      {
+        "description": "Double dot resolved",
+        "expected": "GET|/api/users|",
+        "id": "binding-008",
+        "input": {
+          "method": "GET",
+          "path": "/api/v1/../users",
+          "query": ""
+        }
+      },
+      {
+        "description": "Encoded slashes decoded and collapsed",
+        "expected": "GET|/api/users|",
+        "id": "binding-009",
+        "input": {
+          "method": "GET",
+          "path": "/api/%2F%2F/users",
+          "query": ""
+        }
+      },
+      {
+        "description": "Plus literal in query within binding",
+        "expected": "GET|/api/search|q=a%2Bb",
+        "id": "binding-010",
+        "input": {
+          "method": "GET",
+          "path": "/api/search",
+          "query": "q=a+b"
+        }
+      },
+      {
+        "description": "Fragment stripped from query",
+        "expected": "GET|/api/search|q=test",
+        "id": "binding-011",
+        "input": {
+          "method": "GET",
+          "path": "/api/search",
+          "query": "q=test#section"
+        }
+      },
+      {
+        "description": "Special chars @me preserved",
+        "expected": "GET|/api/users/@me|",
+        "id": "binding-012",
+        "input": {
+          "method": "GET",
+          "path": "/api/users/@me",
+          "query": ""
+        }
+      },
+      {
+        "description": "Empty method rejected",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "binding-013",
+        "input": {
+          "method": "",
+          "path": "/api",
+          "query": ""
+        }
+      },
+      {
+        "description": "Missing leading slash rejected",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "binding-014",
+        "input": {
+          "method": "GET",
+          "path": "api/users",
+          "query": ""
+        }
+      },
+      {
+        "description": "Non-ASCII method rejected",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "binding-015",
+        "input": {
+          "method": "GËṪ",
+          "path": "/api",
+          "query": ""
+        }
+      }
+    ],
+    "body_hashing": [
+      {
+        "description": "Empty string hash",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "id": "hash-001",
+        "input": ""
+      },
+      {
+        "description": "String 'test'",
+        "expected": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+        "id": "hash-002",
+        "input": "test"
+      },
+      {
+        "description": "Empty JSON object",
+        "expected": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "id": "hash-003",
+        "input": "{}"
+      },
+      {
+        "description": "Canonical JSON payload",
+        "expected": "2981e2d7fb144781cd20d3604c20e45a4b83e5905fa16781793c063a73e98691",
+        "id": "hash-004",
+        "input": "{\"amount\":100,\"recipient\":\"alice\"}"
+      },
+      {
+        "description": "Single character",
+        "expected": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+        "id": "hash-005",
+        "input": "a"
+      },
+      {
+        "description": "Unicode string",
+        "expected": "850f7dc43910ff890f8879c0ed26fe697c93a067ad93a7d50f466a7028a9bf4e",
+        "id": "hash-006",
+        "input": "café"
+      }
+    ],
+    "client_secret_derivation": [
+      {
+        "description": "Standard derivation",
+        "expected": "ace8951fc0827f5ec619f978d30427a8991d19ef658ac8958594e5b0b5f5cf05",
+        "id": "secret-001",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      },
+      {
+        "description": "Different nonce produces different secret",
+        "expected": "9f8e8fa288bae3ed243d5993b97ad67de9ec67cf89aec47b3f47ec0937ecd54b",
+        "id": "secret-002",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        }
+      },
+      {
+        "description": "Different context_id produces different secret",
+        "expected": "4fb3188be552915049d294ca88c67dab4e7e217f2d7a66bfaa3d65d7214e396a",
+        "id": "secret-003",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_other_context",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      },
+      {
+        "description": "Different binding produces different secret",
+        "expected": "b02991e4cd02addcb98ce5828b8f09edb0c314a10243dfbbd4548b24f2c39af6",
+        "id": "secret-004",
+        "input": {
+          "binding": "GET|/api/read|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      },
+      {
+        "description": "Minimum length nonce (32 hex chars)",
+        "expected": "7428cf51d18803ebd7053b65fffb4334bd78664e03f4891f9d7dc9e93826f854",
+        "id": "secret-005",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef"
+        }
+      },
+      {
+        "description": "Binding with query",
+        "expected": "a601397117009d23a16b7c4f1af747b8a908a627bd5d90c22222a880ce83a2ae",
+        "id": "secret-006",
+        "input": {
+          "binding": "GET|/api/search|q=test&page=1",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      }
+    ],
+    "error_behavior": [
+      {
+        "description": "Empty nonce rejected",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "error-001",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "",
+          "operation": "derive_client_secret"
+        }
+      },
+      {
+        "description": "Non-hex nonce rejected",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "error-002",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "operation": "derive_client_secret"
+        }
+      },
+      {
+        "description": "Short nonce rejected (< 32 hex chars)",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "error-003",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef",
+          "operation": "derive_client_secret"
+        }
+      },
+      {
+        "description": "Empty context_id rejected",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "error-004",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "operation": "derive_client_secret"
+        }
+      },
+      {
+        "description": "Empty binding rejected",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "error-005",
+        "input": {
+          "binding": "",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "operation": "derive_client_secret"
+        }
+      },
+      {
+        "description": "Invalid JSON rejected",
+        "expected_error": {
+          "code": "ASH_CANONICALIZATION_ERROR",
+          "http_status": 484
+        },
+        "id": "error-006",
+        "input": {
+          "input_json_text": "not json at all",
+          "operation": "canonicalize_json"
+        }
+      },
+      {
+        "description": "Oversized JSON rejected (>10MB)",
+        "expected_error": {
+          "code": "ASH_CANONICALIZATION_ERROR",
+          "http_status": 484
+        },
+        "id": "error-007",
+        "input": {
+          "note": "Input exceeds 10MB limit",
+          "operation": "canonicalize_json"
+        }
+      },
+      {
+        "description": "Deeply nested JSON rejected (>64 levels)",
+        "expected_error": {
+          "code": "ASH_CANONICALIZATION_ERROR",
+          "http_status": 484
+        },
+        "id": "error-008",
+        "input": {
+          "note": "Input exceeds 64 nesting levels",
+          "operation": "canonicalize_json"
+        }
+      },
+      {
+        "description": "Invalid timestamp format rejected (non-digits)",
+        "expected_error": {
+          "code": "ASH_TIMESTAMP_INVALID",
+          "http_status": 482
+        },
+        "id": "error-009",
+        "input": {
+          "operation": "verify_proof",
+          "timestamp": "abc"
+        }
+      },
+      {
+        "description": "Timestamp with leading zeros rejected",
+        "expected_error": {
+          "code": "ASH_TIMESTAMP_INVALID",
+          "http_status": 482
+        },
+        "id": "error-010",
+        "input": {
+          "operation": "verify_proof",
+          "timestamp": "0123456789"
+        }
+      },
+      {
+        "description": "Missing scoped field in strict mode",
+        "expected_error": {
+          "code": "ASH_SCOPED_FIELD_MISSING",
+          "http_status": 475
+        },
+        "id": "error-011",
+        "input": {
+          "operation": "extract_scoped_fields_strict",
+          "payload": "{\"amount\":100}",
+          "scope": [
+            "amount",
+            "nonexistent"
+          ]
+        }
+      },
+      {
+        "description": "Invalid body hash format rejected (wrong length)",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "error-012",
+        "input": {
+          "body_hash": "short",
+          "operation": "build_proof"
+        }
+      },
+      {
+        "description": "Non-hex body hash rejected",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "error-013",
+        "input": {
+          "body_hash": "g3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "operation": "build_proof"
+        }
+      },
+      {
+        "description": "Empty proof rejected for chain hashing",
+        "expected_error": {
+          "code": "ASH_VALIDATION_ERROR",
+          "http_status": 485
+        },
+        "id": "error-014",
+        "input": {
+          "operation": "hash_proof",
+          "proof": ""
+        }
+      },
+      {
+        "description": "Empty timestamp rejected",
+        "expected_error": {
+          "code": "ASH_TIMESTAMP_INVALID",
+          "http_status": 482
+        },
+        "id": "error-015",
+        "input": {
+          "operation": "verify_proof",
+          "timestamp": ""
+        }
+      }
+    ],
+    "json_canonicalization": [
+      {
+        "description": "Basic key sorting",
+        "expected": "{\"a\":2,\"z\":1}",
+        "id": "json-001",
+        "input_json_text": "{\"z\":1,\"a\":2}"
+      },
+      {
+        "description": "Nested key sorting",
+        "expected": "{\"a\":1,\"b\":{\"c\":3,\"d\":4}}",
+        "id": "json-002",
+        "input_json_text": "{\"b\":{\"d\":4,\"c\":3},\"a\":1}"
+      },
+      {
+        "description": "Whitespace removal",
+        "expected": "{\"a\":2,\"z\":1}",
+        "id": "json-003",
+        "input_json_text": "{ \"z\" : 1 , \"a\" : 2 }"
+      },
+      {
+        "description": "Array order preserved",
+        "expected": "{\"arr\":[3,1,2]}",
+        "id": "json-004",
+        "input_json_text": "{\"arr\":[3,1,2]}"
+      },
+      {
+        "description": "Null value",
+        "expected": "{\"a\":null}",
+        "id": "json-005",
+        "input_json_text": "{\"a\":null}"
+      },
+      {
+        "description": "Boolean values sorted",
+        "expected": "{\"a\":false,\"b\":true}",
+        "id": "json-006",
+        "input_json_text": "{\"b\":true,\"a\":false}"
+      },
+      {
+        "description": "Empty object",
+        "expected": "{}",
+        "id": "json-007",
+        "input_json_text": "{}"
+      },
+      {
+        "description": "Empty array",
+        "expected": "[]",
+        "id": "json-008",
+        "input_json_text": "[]"
+      },
+      {
+        "description": "Unicode cafe NFC",
+        "expected": "{\"name\":\"café\"}",
+        "id": "json-009",
+        "input_json_text": "{\"name\":\"café\"}"
+      },
+      {
+        "description": "Whole float becomes integer",
+        "expected": "{\"a\":5}",
+        "id": "json-010",
+        "input_json_text": "{\"a\":5.0}"
+      },
+      {
+        "description": "Negative zero becomes zero",
+        "expected": "{\"a\":0}",
+        "id": "json-011",
+        "input_json_text": "{\"a\":-0.0}"
+      },
+      {
+        "description": "Fractional preserved",
+        "expected": "{\"a\":5.5}",
+        "id": "json-012",
+        "input_json_text": "{\"a\":5.5}"
+      },
+      {
+        "description": "Large whole float to integer",
+        "expected": "{\"a\":1000000}",
+        "id": "json-013",
+        "input_json_text": "{\"a\":1000000.0}"
+      },
+      {
+        "description": "Scientific notation 1e2",
+        "expected": "{\"a\":100}",
+        "id": "json-014",
+        "input_json_text": "{\"a\":1e2}"
+      },
+      {
+        "description": "Negative float",
+        "expected": "{\"a\":-3.14}",
+        "id": "json-015",
+        "input_json_text": "{\"a\":-3.14}"
+      },
+      {
+        "description": "Empty string value",
+        "expected": "{\"a\":\"\"}",
+        "id": "json-016",
+        "input_json_text": "{\"a\":\"\"}"
+      },
+      {
+        "description": "Deeply nested 3 levels",
+        "expected": "{\"a\":{\"b\":{\"c\":1}}}",
+        "id": "json-017",
+        "input_json_text": "{\"a\":{\"b\":{\"c\":1}}}"
+      },
+      {
+        "description": "Mixed type array",
+        "expected": "[1,\"hello\",true,null,3.14]",
+        "id": "json-018",
+        "input_json_text": "[1,\"hello\",true,null,3.14]"
+      },
+      {
+        "description": "String with escapes",
+        "expected": "{\"a\":\"line1\\nline2\\ttab\"}",
+        "id": "json-019",
+        "input_json_text": "{\"a\":\"line1\\nline2\\ttab\"}"
+      },
+      {
+        "description": "String with backslash",
+        "expected": "{\"a\":\"back\\\\slash\"}",
+        "id": "json-020",
+        "input_json_text": "{\"a\":\"back\\\\slash\"}"
+      },
+      {
+        "description": "String with quotes",
+        "expected": "{\"a\":\"say \\\"hello\\\"\"}",
+        "id": "json-021",
+        "input_json_text": "{\"a\":\"say \\\"hello\\\"\"}"
+      },
+      {
+        "description": "Emoji in string",
+        "expected": "{\"emoji\":\"😀🎉\"}",
+        "id": "json-022",
+        "input_json_text": "{\"emoji\":\"😀🎉\"}"
+      },
+      {
+        "description": "Arabic text",
+        "expected": "{\"text\":\"مرحبا\"}",
+        "id": "json-023",
+        "input_json_text": "{\"text\":\"مرحبا\"}"
+      },
+      {
+        "description": "MAX_SAFE_INTEGER",
+        "expected": "{\"a\":9007199254740991}",
+        "id": "json-024",
+        "input_json_text": "{\"a\":9007199254740991}"
+      },
+      {
+        "description": "Negative integer",
+        "expected": "{\"a\":-42}",
+        "id": "json-025",
+        "input_json_text": "{\"a\":-42}"
+      },
+      {
+        "description": "Newline in value preserved",
+        "expected": "{\"a\":\"line1\\r\\nline2\"}",
+        "id": "json-026",
+        "input_json_text": "{\"a\":\"line1\\r\\nline2\"}"
+      },
+      {
+        "description": "Control char u0001",
+        "expected": "{\"a\":\"\\u0001\"}",
+        "id": "json-027",
+        "input_json_text": "{\"a\":\"\\u0001\"}"
+      },
+      {
+        "description": "Float 0.1+0.2 representation",
+        "expected": "{\"a\":0.30000000000000004}",
+        "id": "json-028",
+        "input_json_text": "{\"a\":0.30000000000000004}"
+      },
+      {
+        "description": "Float 1e-7 boundary",
+        "expected": "{\"a\":1e-7}",
+        "id": "json-029",
+        "input_json_text": "{\"a\":0.0000001}"
+      },
+      {
+        "description": "Float 0.3 round-trip",
+        "expected": "{\"a\":0.3}",
+        "id": "json-030",
+        "input_json_text": "{\"a\":0.3}"
+      },
+      {
+        "description": "Float epsilon",
+        "expected": "{\"a\":2.220446049250313e-16}",
+        "id": "json-031",
+        "input_json_text": "{\"a\":2.220446049250313e-16}"
+      },
+      {
+        "description": "Integer 1e10",
+        "expected": "{\"a\":10000000000}",
+        "id": "json-032",
+        "input_json_text": "{\"a\":10000000000}"
+      },
+      {
+        "description": "Unicode NFC normalization: e + combining accent -> é",
+        "expected": "{\"key\":\"café\"}",
+        "id": "json-033",
+        "input_json_text": "{\"key\":\"caf\\u0065\\u0301\"}"
+      },
+      {
+        "description": "Duplicate keys: last_wins policy",
+        "expected": "{\"a\":3,\"b\":2}",
+        "id": "json-034",
+        "input_json_text": "{\"a\":1,\"b\":2,\"a\":3}"
+      }
+    ],
+    "proof_generation": [
+      {
+        "description": "Basic proof generation and verification",
+        "expected": {
+          "body_hash": "2981e2d7fb144781cd20d3604c20e45a4b83e5905fa16781793c063a73e98691",
+          "canonical_payload": "{\"amount\":100,\"recipient\":\"alice\"}",
+          "client_secret": "ace8951fc0827f5ec619f978d30427a8991d19ef658ac8958594e5b0b5f5cf05",
+          "proof": "b3a4ceb5f6fd9fb9429952c063bc3e2ddad534367d1e8209f457f726e70eea54"
+        },
+        "id": "proof-001",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"amount\":100,\"recipient\":\"alice\"}",
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "description": "Different payload produces different proof",
+        "expected": {
+          "body_hash": "6c3acf5d5007dcc6b127c384657d57f6ac98baf0fba3517c9ebbf1d423664053",
+          "canonical_payload": "{\"amount\":200,\"recipient\":\"bob\"}",
+          "client_secret": "ace8951fc0827f5ec619f978d30427a8991d19ef658ac8958594e5b0b5f5cf05",
+          "proof": "9fd463cd2c4547626b26c0fde3daf5a50f2117dae35dd54de0868e7c61109621"
+        },
+        "id": "proof-002",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"amount\":200,\"recipient\":\"bob\"}",
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "description": "Different timestamp produces different proof",
+        "expected": {
+          "body_hash": "2981e2d7fb144781cd20d3604c20e45a4b83e5905fa16781793c063a73e98691",
+          "canonical_payload": "{\"amount\":100,\"recipient\":\"alice\"}",
+          "client_secret": "ace8951fc0827f5ec619f978d30427a8991d19ef658ac8958594e5b0b5f5cf05",
+          "proof": "49eae3e3473aeefdcaf5f43f0aad6509f5fa07361f8596f47a79b5485c45bc4e"
+        },
+        "id": "proof-003",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"amount\":100,\"recipient\":\"alice\"}",
+          "timestamp": "1700000100"
+        }
+      },
+      {
+        "description": "Proof verification succeeds with correct inputs",
+        "expected": {
+          "valid": true
+        },
+        "id": "proof-004",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "body_hash": "2981e2d7fb144781cd20d3604c20e45a4b83e5905fa16781793c063a73e98691",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "proof": "b3a4ceb5f6fd9fb9429952c063bc3e2ddad534367d1e8209f457f726e70eea54",
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "description": "Tampered body hash fails verification",
+        "expected": {
+          "valid": false
+        },
+        "id": "proof-005",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "body_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "proof": "b3a4ceb5f6fd9fb9429952c063bc3e2ddad534367d1e8209f457f726e70eea54",
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "description": "Wrong proof fails verification",
+        "expected": {
+          "valid": false
+        },
+        "id": "proof-006",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "body_hash": "2981e2d7fb144781cd20d3604c20e45a4b83e5905fa16781793c063a73e98691",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "proof": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "description": "Empty object payload proof",
+        "expected": {
+          "body_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "canonical_payload": "{}",
+          "client_secret": "ace8951fc0827f5ec619f978d30427a8991d19ef658ac8958594e5b0b5f5cf05",
+          "proof": "49598b5b4137dc2f5f5b85232ee5b0cb299f6e897639acb416ea82608890e684"
+        },
+        "id": "proof-007",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{}",
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "description": "Proof format: 64 lowercase hex characters",
+        "expected": {
+          "proof": "b3a4ceb5f6fd9fb9429952c063bc3e2ddad534367d1e8209f457f726e70eea54",
+          "proof_is_lowercase_hex": true,
+          "proof_length": 64
+        },
+        "id": "proof-008",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"amount\":100,\"recipient\":\"alice\"}",
+          "timestamp": "1700000000"
+        }
+      }
+    ],
+    "query_canonicalization": [
+      {
+        "description": "Basic key sorting",
+        "expected": "a=1&b=2&z=3",
+        "id": "query-001",
+        "input": "z=3&a=1&b=2"
+      },
+      {
+        "description": "Duplicate key value sorting",
+        "expected": "a=1&a=2&a=3",
+        "id": "query-002",
+        "input": "a=2&a=1&a=3"
+      },
+      {
+        "description": "Plus sign is literal (critical)",
+        "expected": "a%2Bb=1",
+        "id": "query-003",
+        "input": "a+b=1"
+      },
+      {
+        "description": "Plus in value is literal",
+        "expected": "q=a%2Bb",
+        "id": "query-004",
+        "input": "q=a+b"
+      },
+      {
+        "description": "Uppercase hex normalization",
+        "expected": "a=hello%2Fworld",
+        "id": "query-005",
+        "input": "a=hello%2fworld"
+      },
+      {
+        "description": "Empty value preserved",
+        "expected": "a=&b=2",
+        "id": "query-006",
+        "input": "a=&b=2"
+      },
+      {
+        "description": "Key without value becomes flag=",
+        "expected": "b=2&flag=",
+        "id": "query-007",
+        "input": "flag&b=2"
+      },
+      {
+        "description": "Leading ? stripped",
+        "expected": "a=1&z=3",
+        "id": "query-008",
+        "input": "?z=3&a=1"
+      },
+      {
+        "description": "Fragment # stripped",
+        "expected": "a=1&z=3",
+        "id": "query-009",
+        "input": "z=3&a=1#section"
+      },
+      {
+        "description": "Case-sensitive keys A vs a",
+        "expected": "A=2&a=1",
+        "id": "query-010",
+        "input": "a=1&A=2"
+      },
+      {
+        "description": "Space as %20",
+        "expected": "a=hello%20world",
+        "id": "query-011",
+        "input": "a=hello%20world"
+      },
+      {
+        "description": "Unicode percent-encoded",
+        "expected": "a=%C3%A9",
+        "id": "query-012",
+        "input": "a=%C3%A9"
+      },
+      {
+        "description": "Empty query",
+        "expected": "",
+        "id": "query-013",
+        "input": ""
+      },
+      {
+        "description": "Fragment only",
+        "expected": "",
+        "id": "query-014",
+        "input": "#onlyfragment"
+      },
+      {
+        "description": "Byte order sorting 0 < A < a",
+        "expected": "0=4&A=2&a=3&z=1",
+        "id": "query-015",
+        "input": "z=1&A=2&a=3&0=4"
+      }
+    ],
+    "scoped_field_extraction": [
+      {
+        "debug": {
+          "mode": "lenient",
+          "sorted_fields": [
+            "amount",
+            "recipient"
+          ]
+        },
+        "description": "Simple field extraction with scope hash",
+        "expected": {
+          "canonical_scoped": "{\"amount\":100,\"recipient\":\"alice\"}",
+          "extracted_fields": {
+            "amount": 100,
+            "recipient": "alice"
+          },
+          "proof": "980adafd852c05bb605b257991d3896713abf292dcf3329c0ab055e9f9efcd74",
+          "scope_hash": "725b8b6c297c1c1d0eaf6e968cd6a9cb8bf9fdd8212b8ab4ab25e7f082c311f9"
+        },
+        "id": "scope-001",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"amount\":100,\"recipient\":\"alice\",\"notes\":\"hello\"}",
+          "scope": [
+            "amount",
+            "recipient"
+          ],
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "debug": {
+          "mode": "lenient",
+          "sorted_fields": [
+            "user.address.city",
+            "user.name"
+          ]
+        },
+        "description": "Dot-notation nested fields",
+        "expected": {
+          "extracted_fields": {
+            "user": {
+              "address": {
+                "city": "NYC"
+              },
+              "name": "Alice"
+            }
+          },
+          "proof": "3735989e006e2b38cb7d2619719fef815f707a8d173c20bd32c9c2174854583c",
+          "scope_hash": "005f1de88dc44ed26d0f0da25555263d71c02e5881db9ade2074357746e0cb78"
+        },
+        "id": "scope-002",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"user\":{\"name\":\"Alice\",\"address\":{\"city\":\"NYC\"}},\"total\":100}",
+          "scope": [
+            "user.name",
+            "user.address.city"
+          ],
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "debug": {
+          "mode": "lenient"
+        },
+        "description": "Bracket-notation array element",
+        "expected": {
+          "extracted_fields": {
+            "items": [
+              {
+                "id": 1,
+                "name": "a"
+              }
+            ]
+          },
+          "proof": "c2008983153c015bcedf57c77754656533f5b280c508d1fe358dcd2031a2d04a",
+          "scope_hash": "269f330e97edde0f4377f8dd16cd669e082ee81b7fcf13aaa73df029c39768d8"
+        },
+        "id": "scope-003",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"items\":[{\"id\":1,\"name\":\"a\"},{\"id\":2,\"name\":\"b\"}],\"total\":100}",
+          "scope": [
+            "items[0]"
+          ],
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "debug": {
+          "mode": "lenient"
+        },
+        "description": "Nested array path items[0].id",
+        "expected": {
+          "extracted_fields": {
+            "items": [
+              {
+                "id": 1
+              }
+            ]
+          },
+          "proof": "2b81e89b892c1784872da0b192bd50905d8cd704a6b5da49bcfe245b14d4bc4f",
+          "scope_hash": "2226dd96e00cbcee7e14111490d0721410e163f6188069fae8442482f17481f7"
+        },
+        "id": "scope-004",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"items\":[{\"id\":1,\"name\":\"a\"},{\"id\":2,\"name\":\"b\"}],\"total\":100}",
+          "scope": [
+            "items[0].id"
+          ],
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "debug": {
+          "mode": "lenient"
+        },
+        "description": "Empty scope returns full payload",
+        "expected": {
+          "extracted_fields": {
+            "amount": 100,
+            "notes": "hello",
+            "recipient": "alice"
+          }
+        },
+        "id": "scope-005",
+        "input": {
+          "payload": "{\"amount\":100,\"recipient\":\"alice\",\"notes\":\"hello\"}",
+          "scope": []
+        }
+      },
+      {
+        "debug": {
+          "mode": "lenient"
+        },
+        "description": "Missing field silently ignored in lenient mode",
+        "expected": {
+          "extracted_fields": {
+            "amount": 100
+          }
+        },
+        "id": "scope-006",
+        "input": {
+          "payload": "{\"amount\":100,\"recipient\":\"alice\",\"notes\":\"hello\"}",
+          "scope": [
+            "amount",
+            "nonexistent"
+          ]
+        }
+      },
+      {
+        "debug": {
+          "joined_string_hex": "616d6f756e741f726563697069656e74",
+          "sorted_fields": [
+            "amount",
+            "recipient"
+          ]
+        },
+        "description": "Scope hash: SHA256 of sorted fields joined by unit separator",
+        "expected": {
+          "scope_hash": "725b8b6c297c1c1d0eaf6e968cd6a9cb8bf9fdd8212b8ab4ab25e7f082c311f9"
+        },
+        "id": "scope-007",
+        "input": {
+          "scope": [
+            "amount",
+            "recipient"
+          ]
+        }
+      },
+      {
+        "debug": {
+          "mode": "strict"
+        },
+        "description": "Strict mode: missing field returns error",
+        "expected_error": {
+          "code": "ASH_SCOPED_FIELD_MISSING",
+          "http_status": 475
+        },
+        "id": "scope-008",
+        "input": {
+          "payload": "{\"amount\":100,\"recipient\":\"alice\",\"notes\":\"hello\"}",
+          "scope": [
+            "amount",
+            "nonexistent"
+          ],
+          "strict": true
+        }
+      }
+    ],
+    "timestamp_validation": [
+      {
+        "description": "Timestamp '0' is valid format",
+        "expected": {
+          "valid_format": true
+        },
+        "id": "timestamp-001",
+        "input": {
+          "timestamp": "0"
+        }
+      },
+      {
+        "description": "Timestamp must be digits only",
+        "expected_error": {
+          "code": "ASH_TIMESTAMP_INVALID",
+          "http_status": 482
+        },
+        "id": "timestamp-002",
+        "input": {
+          "timestamp": "123abc"
+        }
+      },
+      {
+        "description": "Leading zeros rejected (except '0' itself)",
+        "expected_error": {
+          "code": "ASH_TIMESTAMP_INVALID",
+          "http_status": 482
+        },
+        "id": "timestamp-003",
+        "input": {
+          "timestamp": "0100"
+        }
+      },
+      {
+        "description": "Reference timestamp is valid format",
+        "expected": {
+          "valid_format": true,
+          "value_seconds": 1700000000
+        },
+        "id": "timestamp-004",
+        "input": {
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "description": "Empty timestamp rejected",
+        "expected_error": {
+          "code": "ASH_TIMESTAMP_INVALID",
+          "http_status": 482
+        },
+        "id": "timestamp-005",
+        "input": {
+          "timestamp": ""
+        }
+      },
+      {
+        "description": "Negative timestamp rejected",
+        "expected_error": {
+          "code": "ASH_TIMESTAMP_INVALID",
+          "http_status": 482
+        },
+        "id": "timestamp-006",
+        "input": {
+          "timestamp": "-1"
+        }
+      },
+      {
+        "description": "Whitespace in timestamp rejected",
+        "expected_error": {
+          "code": "ASH_TIMESTAMP_INVALID",
+          "http_status": 482
+        },
+        "id": "timestamp-007",
+        "input": {
+          "timestamp": " 100 "
+        }
+      },
+      {
+        "description": "Timestamps use seconds resolution (not milliseconds)",
+        "expected": {
+          "reference_time_seconds": 1700000000,
+          "resolution": "seconds"
+        },
+        "id": "timestamp-008",
+        "input": {
+          "note": "All ASH timestamps are Unix seconds. reference_time 1700000000 = 2023-11-14T22:13:20Z",
+          "reference_time": 1700000000
+        }
+      }
+    ],
+    "timing_safe_comparison": [
+      {
+        "description": "Equal strings",
+        "expected": true,
+        "id": "timing-001",
+        "input": {
+          "a": "hello",
+          "b": "hello"
+        },
+        "note": "Suite tests correctness only, not constant-time behavior"
+      },
+      {
+        "description": "Different strings",
+        "expected": false,
+        "id": "timing-002",
+        "input": {
+          "a": "hello",
+          "b": "world"
+        },
+        "note": "Suite tests correctness only, not constant-time behavior"
+      },
+      {
+        "description": "Different lengths",
+        "expected": false,
+        "id": "timing-003",
+        "input": {
+          "a": "hello",
+          "b": "hi"
+        },
+        "note": "Suite tests correctness only, not constant-time behavior"
+      },
+      {
+        "description": "Empty strings equal",
+        "expected": true,
+        "id": "timing-004",
+        "input": {
+          "a": "",
+          "b": ""
+        },
+        "note": "Suite tests correctness only, not constant-time behavior"
+      },
+      {
+        "description": "Empty vs non-empty",
+        "expected": false,
+        "id": "timing-005",
+        "input": {
+          "a": "",
+          "b": "x"
+        },
+        "note": "Suite tests correctness only, not constant-time behavior"
+      }
+    ],
+    "unified_proof": [
+      {
+        "description": "Basic unified proof: no scope, no chain",
+        "expected": {
+          "chain_hash": "",
+          "proof": "fb9010d5e1f7e61f3a26417e0eb18081ae1f01ab9da3439f54956daa1fb07159",
+          "scope_hash": ""
+        },
+        "id": "unified-001",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"action\":\"transfer\",\"amount\":500}",
+          "previous_proof": null,
+          "scope": [],
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "description": "Unified proof with scope only",
+        "expected": {
+          "chain_hash": "",
+          "proof": "1c5a7002fc949c736c8c5ec6dea45f668afbe1380fc8431bdcf62a65e4fa6f7b",
+          "scope_hash": "8457324d0ef2b777cde52009adc6eb907b87f8331f0123c374a5e202dba997c4"
+        },
+        "id": "unified-002",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"action\":\"transfer\",\"amount\":500}",
+          "previous_proof": null,
+          "scope": [
+            "action",
+            "amount"
+          ],
+          "timestamp": "1700000000"
+        }
+      },
+      {
+        "description": "Unified proof with chain only",
+        "expected": {
+          "chain_hash": "33fb0d57089767e62f10ecfce021489debd19627a244475b0e6dcfa8bc79fbd9",
+          "proof": "40b33e94821565d0671f87ffe22dd120e33ce360f3a29487b75a3584e8453b16",
+          "scope_hash": ""
+        },
+        "id": "unified-003",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"action\":\"transfer\",\"amount\":500}",
+          "previous_proof": "fb9010d5e1f7e61f3a26417e0eb18081ae1f01ab9da3439f54956daa1fb07159",
+          "scope": [],
+          "timestamp": "1700000100"
+        }
+      },
+      {
+        "description": "Unified proof with scope and chain",
+        "expected": {
+          "chain_hash": "3f8f6ff4fab86cb1e538f5ea3963f664486534c18a8ef1333aaac6170f700874",
+          "proof": "a25de11e98d8b2ed318fcba27e6fa41a03b99ec4b8655581f91b155c11a00f3c",
+          "scope_hash": "8457324d0ef2b777cde52009adc6eb907b87f8331f0123c374a5e202dba997c4"
+        },
+        "id": "unified-004",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"action\":\"transfer\",\"amount\":500}",
+          "previous_proof": "40b33e94821565d0671f87ffe22dd120e33ce360f3a29487b75a3584e8453b16",
+          "scope": [
+            "action",
+            "amount"
+          ],
+          "timestamp": "1700000200"
+        }
+      },
+      {
+        "description": "Chain hash: SHA256 of proof hex ASCII bytes",
+        "expected": {
+          "chain_hash": "33fb0d57089767e62f10ecfce021489debd19627a244475b0e6dcfa8bc79fbd9"
+        },
+        "id": "unified-005",
+        "input": {
+          "previous_proof": "fb9010d5e1f7e61f3a26417e0eb18081ae1f01ab9da3439f54956daa1fb07159"
+        }
+      },
+      {
+        "description": "Unified proof verification succeeds",
+        "expected": {
+          "valid": true
+        },
+        "id": "unified-006",
+        "input": {
+          "binding": "POST|/api/transfer|",
+          "chain_hash": "",
+          "context_id": "ctx_test_conformance_v1",
+          "nonce": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "payload": "{\"action\":\"transfer\",\"amount\":500}",
+          "previous_proof": null,
+          "proof": "fb9010d5e1f7e61f3a26417e0eb18081ae1f01ab9da3439f54956daa1fb07159",
+          "scope": [],
+          "scope_hash": "",
+          "timestamp": "1700000000"
+        }
+      }
+    ],
+    "urlencoded_canonicalization": [
+      {
+        "description": "Basic sorting",
+        "expected": "a=1&b=2&z=3",
+        "id": "urlencode-001",
+        "input": "z=3&a=1&b=2"
+      },
+      {
+        "description": "Duplicate key sorting",
+        "expected": "a=1&a=2&b=3",
+        "id": "urlencode-002",
+        "input": "a=2&a=1&b=3"
+      },
+      {
+        "description": "Plus is literal not space",
+        "expected": "a=hello%2Bworld",
+        "id": "urlencode-003",
+        "input": "a=hello+world"
+      },
+      {
+        "description": "Space as %20 preserved",
+        "expected": "a=hello%20world",
+        "id": "urlencode-004",
+        "input": "a=hello%20world"
+      },
+      {
+        "description": "Empty input",
+        "expected": "",
+        "id": "urlencode-005",
+        "input": ""
+      },
+      {
+        "description": "Key without value",
+        "expected": "a=&b=2",
+        "id": "urlencode-006",
+        "input": "a&b=2"
+      },
+      {
+        "description": "Mixed encoding",
+        "expected": "a=hello%20world&b=%2F",
+        "id": "urlencode-007",
+        "input": "b=%2F&a=hello%20world"
+      },
+      {
+        "description": "Uppercase hex in output",
+        "expected": "a=%2F",
+        "id": "urlencode-008",
+        "input": "a=%2f"
+      }
+    ]
+  }
+}
